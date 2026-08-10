@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import healthRoutes from "./routes/healthRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 import { notFoundMiddleware } from "./middleware/notFoundMiddleware.js";
 import { errorMiddleware } from "./middleware/errorMiddleware.js";
@@ -11,12 +12,7 @@ dotenv.config();
 
 const app = express();
 
-/*
-=====================================================
-CORS
-=====================================================
-*/
-
+//CORS
 app.use(
     cors({
         origin: "http://localhost:5173",
@@ -24,34 +20,22 @@ app.use(
     })
 );
 
-/*
-=====================================================
-BODY PARSER
-=====================================================
-*/
 
+// BODY PARSER
 app.use(express.json());
-
 app.use(
     express.urlencoded({
         extended: true
     })
 );
 
-/*
-=====================================================
-API ROUTES
-=====================================================
-*/
 
+// API ROUTES
 app.use("/api/health", healthRoutes);
+app.use("/api/auth",authRoutes);
 
-/*
-=====================================================
-ROOT ROUTE
-=====================================================
-*/
 
+// ROOT ROUTE
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -60,19 +44,11 @@ app.get("/", (req, res) => {
     });
 });
 
-/*
-=====================================================
-404 HANDLER
-=====================================================
-*/
-
+// 404 HANDLER
 app.use(notFoundMiddleware);
 
-/*
-=====================================================
-GLOBAL ERROR HANDLER
-=====================================================
-*/
+
+// GLOBAL ERROR HANDLER
 
 app.use(errorMiddleware);
 
