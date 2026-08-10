@@ -7,8 +7,16 @@ import {
 
 const router = express.Router();
 
-router.get("/", healthCheck);
+// SERVER HEALTH
+router.get(
+    "/",
+    healthCheck
+);
 
-router.get("/database", databaseHealthCheck);
+// DATABASE HEALTH
+router.get(
+    "/database",
+    databaseHealthCheck
+);
 
 export default router;
