@@ -1,3 +1,4 @@
+
 import axios from "axios";
 import dotenv from "dotenv";
 
@@ -9,7 +10,7 @@ const OPEN_LIBRARY_BASE_URL =
 
 const openLibraryApi = axios.create({
     baseURL: OPEN_LIBRARY_BASE_URL,
-    timeout: 15000,
+    timeout: 20000,
 
     headers: {
         Accept: "application/json",
@@ -20,6 +21,7 @@ const openLibraryApi = axios.create({
     }
 });
 
+
 /*
 =====================================================
 HANDLE OPEN LIBRARY ERROR
@@ -27,45 +29,68 @@ HANDLE OPEN LIBRARY ERROR
 */
 
 const handleOpenLibraryError = (error) => {
+
     if (error.response) {
-        const status = error.response.status;
+
+        const status =
+            error.response.status;
 
         const message =
             error.response.data?.message ||
             `Open Library API returned status ${status}`;
 
-        const apiError = new Error(message);
+        const apiError =
+            new Error(message);
 
-        apiError.statusCode = status;
-        apiError.isOpenLibraryError = true;
+        apiError.statusCode =
+            status;
+
+        apiError.isOpenLibraryError =
+            true;
 
         return apiError;
     }
 
-    if (error.code === "ECONNABORTED") {
-        const timeoutError = new Error(
-            "Open Library API request timed out"
-        );
 
-        timeoutError.statusCode = 504;
-        timeoutError.isOpenLibraryError = true;
+    if (
+        error.code ===
+        "ECONNABORTED"
+    ) {
+
+        const timeoutError =
+            new Error(
+                "Open Library API request timed out"
+            );
+
+        timeoutError.statusCode =
+            504;
+
+        timeoutError.isOpenLibraryError =
+            true;
 
         return timeoutError;
     }
+
 
     if (
         error.code === "ENOTFOUND" ||
         error.code === "ECONNREFUSED"
     ) {
-        const connectionError = new Error(
-            "Unable to connect to Open Library API"
-        );
 
-        connectionError.statusCode = 503;
-        connectionError.isOpenLibraryError = true;
+        const connectionError =
+            new Error(
+                "Unable to connect to Open Library API"
+            );
+
+        connectionError.statusCode =
+            503;
+
+        connectionError.isOpenLibraryError =
+            true;
 
         return connectionError;
     }
+
 
     return error;
 };
@@ -82,39 +107,105 @@ export const searchBooks = async ({
     page = 1,
     limit = 100
 }) => {
+
     try {
-        if (!query || !query.trim()) {
+
+        if (
+            !query ||
+            !query.trim()
+        ) {
+
             throw new Error(
                 "Search query is required"
             );
         }
+
+
+        /*
+        ---------------------------------------------
+        IMPORTANT OPEN LIBRARY FIELDS
+        ---------------------------------------------
+        */
+
+        const fields = [
+            "key",
+            "title",
+            "subtitle",
+            "author_name",
+            "author_key",
+            "isbn",
+            "publisher",
+            "publish_date",
+            "first_publish_year",
+            "language",
+            "cover_i",
+            "number_of_pages_median",
+            "subject",
+            "description"
+        ].join(",");
+
+
+        console.log(
+            `Fetching Open Library page ${page}`
+        );
+
+        console.log(
+            `Query: ${query}`
+        );
+
+        console.log(
+            `Limit: ${limit}`
+        );
+
 
         const response =
             await openLibraryApi.get(
                 "/search.json",
                 {
                     params: {
+
                         q: query.trim(),
+
                         page,
-                        limit
+
+                        limit,
+
+                        fields
                     }
                 }
             );
 
+
+        const docs =
+            response.data?.docs ||
+            [];
+
+
+        console.log(
+            `Received ${docs.length} books`
+        );
+
+
         return {
+
             success: true,
 
             numFound:
-                response.data.numFound || 0,
+                response.data?.numFound ||
+                0,
 
             start:
-                response.data.start || 0,
+                response.data?.start ||
+                0,
 
-            docs:
-                response.data.docs || []
+            docs
         };
+
     } catch (error) {
-        throw handleOpenLibraryError(error);
+
+        throw handleOpenLibraryError(
+            error
+        );
     }
 };
 
@@ -128,33 +219,45 @@ GET BOOK BY OPEN LIBRARY KEY
 export const getBookByKey = async (
     workKey
 ) => {
+
     try {
+
         if (!workKey) {
+
             throw new Error(
                 "Open Library work key is required"
             );
         }
 
+
         let normalizedKey =
             workKey.trim();
+
 
         if (
             !normalizedKey.startsWith(
                 "/works/"
             )
         ) {
+
             normalizedKey =
                 `/works/${normalizedKey}`;
         }
+
 
         const response =
             await openLibraryApi.get(
                 `${normalizedKey}.json`
             );
 
+
         return response.data;
+
     } catch (error) {
-        throw handleOpenLibraryError(error);
+
+        throw handleOpenLibraryError(
+            error
+        );
     }
 };
 
@@ -168,33 +271,45 @@ GET AUTHOR BY KEY
 export const getAuthorByKey = async (
     authorKey
 ) => {
+
     try {
+
         if (!authorKey) {
+
             throw new Error(
                 "Open Library author key is required"
             );
         }
 
+
         let normalizedKey =
             authorKey.trim();
+
 
         if (
             !normalizedKey.startsWith(
                 "/authors/"
             )
         ) {
+
             normalizedKey =
                 `/authors/${normalizedKey}`;
         }
+
 
         const response =
             await openLibraryApi.get(
                 `${normalizedKey}.json`
             );
 
+
         return response.data;
+
     } catch (error) {
-        throw handleOpenLibraryError(error);
+
+        throw handleOpenLibraryError(
+            error
+        );
     }
 };
 
@@ -209,7 +324,9 @@ export const getBooksFromSearch = async ({
     query,
     limit = 100
 }) => {
+
     try {
+
         const result =
             await searchBooks({
                 query,
@@ -217,11 +334,14 @@ export const getBooksFromSearch = async ({
                 limit
             });
 
+
         return result.docs.slice(
             0,
             limit
         );
+
     } catch (error) {
+
         throw error;
     }
 };
@@ -234,3 +354,4 @@ EXPORT API CLIENT
 */
 
 export default openLibraryApi;
+

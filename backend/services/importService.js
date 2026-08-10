@@ -1,3 +1,14 @@
+
+// =====================================================
+// IMPORT SERVICE
+// BOOK CATALOG DATA IMPORT ADMIN PORTAL
+//
+// STEP 8  → Import 100 / 500 / 1000 books
+// STEP 9  → Clean + validate imported data
+// STEP 9A → Authors + Subjects
+// STEP 10 → Duplicate Handling + UPSERT
+// =====================================================
+
 import pool from "../config/db.js";
 
 import {
@@ -9,11 +20,9 @@ import {
 } from "../utils/bookValidator.js";
 
 
-/*
-=====================================================
-ALLOWED IMPORT SIZES
-=====================================================
-*/
+// =====================================================
+// ALLOWED IMPORT SIZES
+// =====================================================
 
 const ALLOWED_IMPORT_SIZES = [
     100,
@@ -22,11 +31,9 @@ const ALLOWED_IMPORT_SIZES = [
 ];
 
 
-/*
-=====================================================
-IMPORT SEARCH QUERIES
-=====================================================
-*/
+// =====================================================
+// SEARCH QUERIES
+// =====================================================
 
 const IMPORT_SEARCH_QUERIES = [
     "book",
@@ -42,23 +49,25 @@ const IMPORT_SEARCH_QUERIES = [
 ];
 
 
-/*
-=====================================================
-VALIDATE IMPORT SIZE
-=====================================================
-*/
+// =====================================================
+// VALIDATE IMPORT SIZE
+// =====================================================
 
 export const validateImportSize = (count) => {
-    const importCount = Number(count);
+
+    const importCount =
+        Number(count);
 
     if (
         !ALLOWED_IMPORT_SIZES.includes(
             importCount
         )
     ) {
-        const error = new Error(
-            "Import count must be 100, 500, or 1000"
-        );
+
+        const error =
+            new Error(
+                "Import count must be 100, 500, or 1000"
+            );
 
         error.statusCode = 400;
 
@@ -69,30 +78,38 @@ export const validateImportSize = (count) => {
 };
 
 
-/*
-=====================================================
-NORMALIZE OPEN LIBRARY BOOK
-=====================================================
-*/
+// =====================================================
+// NORMALIZE OPEN LIBRARY BOOK
+// =====================================================
 
 const normalizeBook = (book) => {
-    if (!book || typeof book !== "object") {
+
+    if (
+        !book ||
+        typeof book !== "object"
+    ) {
         return null;
     }
+
+
+    // -------------------------------------------------
+    // TITLE
+    // -------------------------------------------------
 
     const title =
         typeof book.title === "string"
             ? book.title.trim()
             : null;
 
+
     if (!title) {
         return null;
     }
 
 
-    /*
-    OPEN LIBRARY KEY
-    */
+    // -------------------------------------------------
+    // OPEN LIBRARY KEY
+    // -------------------------------------------------
 
     const openLibraryKey =
         typeof book.key === "string"
@@ -100,69 +117,100 @@ const normalizeBook = (book) => {
             : null;
 
 
-    /*
-    ISBN
-    */
+    // -------------------------------------------------
+    // ISBN
+    // -------------------------------------------------
 
     const isbnList =
         Array.isArray(book.isbn)
             ? book.isbn
             : [];
 
-    const isbn10 =
-        isbnList.find(
-            (isbn) =>
-                typeof isbn === "string" &&
-                isbn.replace(
-                    /[-\s]/g,
-                    ""
-                ).length === 10
-        ) || null;
 
-    const isbn13 =
-        isbnList.find(
-            (isbn) =>
-                typeof isbn === "string" &&
-                isbn.replace(
-                    /[-\s]/g,
-                    ""
-                ).length === 13
-        ) || null;
+    let isbn10 = null;
+    let isbn13 = null;
 
 
-    /*
-    PUBLISHER
-    */
-
-    const publisher =
-        Array.isArray(book.publisher) &&
-        book.publisher.length > 0
-            ? String(
-                book.publisher[0]
-            ).trim()
-            : null;
-
-
-    /*
-    PUBLISH DATE
-    */
-
-    let publishDate = null;
-
-    if (
-        Array.isArray(book.publish_date) &&
-        book.publish_date.length > 0
+    for (
+        const isbn of isbnList
     ) {
-        publishDate =
-            String(
-                book.publish_date[0]
-            ).trim();
+
+        if (
+            isbn === null ||
+            isbn === undefined
+        ) {
+            continue;
+        }
+
+
+        const clean =
+            String(isbn)
+                .replace(
+                    /[-\s]/g,
+                    ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+        // ISBN-10
+        if (
+            !isbn10 &&
+            clean.length === 10
+        ) {
+
+            isbn10 = clean;
+        }
+
+
+        // ISBN-13
+        if (
+            !isbn13 &&
+            clean.length === 13
+        ) {
+
+            isbn13 = clean;
+        }
     }
 
 
-    /*
-    FIRST PUBLISH YEAR
-    */
+    // -------------------------------------------------
+    // PUBLISHER
+    // -------------------------------------------------
+
+    const publisher =
+        Array.isArray(
+            book.publisher
+        ) &&
+        book.publisher.length > 0
+
+            ? String(
+                book.publisher[0]
+            ).trim()
+
+            : null;
+
+
+    // -------------------------------------------------
+    // PUBLISH DATE
+    // -------------------------------------------------
+
+    const publishDate =
+        Array.isArray(
+            book.publish_date
+        ) &&
+        book.publish_date.length > 0
+
+            ? String(
+                book.publish_date[0]
+            ).trim()
+
+            : null;
+
+
+    // -------------------------------------------------
+    // FIRST PUBLISH YEAR
+    // -------------------------------------------------
 
     const firstPublishYear =
         Number.isInteger(
@@ -172,9 +220,53 @@ const normalizeBook = (book) => {
             : null;
 
 
-    /*
-    COVER
-    */
+    // -------------------------------------------------
+    // LANGUAGE
+    // -------------------------------------------------
+
+    const language =
+        Array.isArray(
+            book.language
+        ) &&
+        book.language.length > 0
+
+            ? String(
+                book.language[0]
+            ).trim()
+
+            : null;
+
+
+    // -------------------------------------------------
+    // DESCRIPTION
+    // -------------------------------------------------
+
+    let description = null;
+
+
+    if (
+        typeof book.description ===
+        "string"
+    ) {
+
+        description =
+            book.description.trim();
+
+    } else if (
+        book.description &&
+        typeof book.description ===
+        "object"
+    ) {
+
+        description =
+            book.description.value ||
+            null;
+    }
+
+
+    // -------------------------------------------------
+    // COVER
+    // -------------------------------------------------
 
     const coverUrl =
         book.cover_i
@@ -182,26 +274,9 @@ const normalizeBook = (book) => {
             : null;
 
 
-    /*
-    LANGUAGE
-    */
-
-    let language = null;
-
-    if (
-        Array.isArray(book.language) &&
-        book.language.length > 0
-    ) {
-        language =
-            String(
-                book.language[0]
-            ).trim();
-    }
-
-
-    /*
-    PAGE COUNT
-    */
+    // -------------------------------------------------
+    // PAGE COUNT
+    // -------------------------------------------------
 
     const pageCount =
         Number.isInteger(
@@ -211,72 +286,103 @@ const normalizeBook = (book) => {
             : null;
 
 
-    /*
-    AUTHORS
-    */
+    // -------------------------------------------------
+    // AUTHORS
+    // -------------------------------------------------
 
     const authors =
-        Array.isArray(book.author_name)
+        Array.isArray(
+            book.author_name
+        )
+
             ? book.author_name
                 .filter(
                     (name) =>
-                        typeof name === "string"
+                        typeof name ===
+                        "string"
                 )
                 .map(
                     (name) =>
                         name.trim()
                 )
                 .filter(Boolean)
+
             : [];
 
 
-    /*
-    AUTHOR KEYS
-    */
+    // -------------------------------------------------
+    // AUTHOR KEYS
+    // -------------------------------------------------
 
     const authorKeys =
-        Array.isArray(book.author_key)
+        Array.isArray(
+            book.author_key
+        )
+
             ? book.author_key
                 .filter(
                     (key) =>
-                        typeof key === "string"
+                        typeof key ===
+                        "string"
                 )
                 .map(
                     (key) =>
                         key.trim()
                 )
                 .filter(Boolean)
+
             : [];
 
 
-    /*
-    SUBJECTS
-    */
+    // -------------------------------------------------
+    // SUBJECTS
+    // -------------------------------------------------
 
     const subjects =
-        Array.isArray(book.subject)
-            ? book.subject
-                .filter(
-                    (subject) =>
-                        typeof subject === "string"
+        Array.isArray(
+            book.subject
+        )
+
+            ? [
+                ...new Set(
+                    book.subject
+                        .filter(
+                            (subject) =>
+                                typeof subject ===
+                                "string"
+                        )
+                        .map(
+                            (subject) =>
+                                subject
+                                    .replace(
+                                        /\s+/g,
+                                        " "
+                                    )
+                                    .trim()
+                        )
+                        .filter(Boolean)
                 )
-                .map(
-                    (subject) =>
-                        subject.trim()
-                )
-                .filter(Boolean)
-                .slice(0, 30)
+            ].slice(0, 30)
+
             : [];
 
 
+    // -------------------------------------------------
+    // RETURN NORMALIZED BOOK
+    // -------------------------------------------------
+
     return {
+
         openLibraryKey,
 
         title,
 
         subtitle:
-            typeof book.subtitle === "string"
+            typeof book.subtitle ===
+            "string"
+
                 ? book.subtitle.trim()
+
                 : null,
 
         isbn10,
@@ -291,6 +397,8 @@ const normalizeBook = (book) => {
 
         language,
 
+        description,
+
         coverUrl,
 
         pageCount,
@@ -304,31 +412,415 @@ const normalizeBook = (book) => {
 };
 
 
-/*
-=====================================================
-INSERT AUTHOR
-=====================================================
-*/
+// =====================================================
+// FIND EXISTING BOOK
+// =====================================================
+//
+// Duplicate priority:
+//
+// 1. Open Library key
+// 2. ISBN-13
+// 3. ISBN-10
+//
+// =====================================================
+
+const findExistingBook = async (
+    connection,
+    book
+) => {
+
+    // -------------------------------------------------
+    // 1. OPEN LIBRARY KEY
+    // -------------------------------------------------
+
+    if (
+        book.openLibraryKey
+    ) {
+
+        const [
+            rows
+        ] =
+            await connection.execute(
+                `
+                SELECT id
+                FROM books
+                WHERE open_library_key = ?
+                LIMIT 1
+                `,
+                [
+                    book.openLibraryKey
+                ]
+            );
+
+
+        if (
+            rows.length > 0
+        ) {
+
+            return rows[0];
+        }
+    }
+
+
+    // -------------------------------------------------
+    // 2. ISBN-13
+    // -------------------------------------------------
+
+    if (
+        book.isbn13
+    ) {
+
+        const [
+            rows
+        ] =
+            await connection.execute(
+                `
+                SELECT id
+                FROM books
+                WHERE isbn13 = ?
+                LIMIT 1
+                `,
+                [
+                    book.isbn13
+                ]
+            );
+
+
+        if (
+            rows.length > 0
+        ) {
+
+            return rows[0];
+        }
+    }
+
+
+    // -------------------------------------------------
+    // 3. ISBN-10
+    // -------------------------------------------------
+
+    if (
+        book.isbn10
+    ) {
+
+        const [
+            rows
+        ] =
+            await connection.execute(
+                `
+                SELECT id
+                FROM books
+                WHERE isbn10 = ?
+                LIMIT 1
+                `,
+                [
+                    book.isbn10
+                ]
+            );
+
+
+        if (
+            rows.length > 0
+        ) {
+
+            return rows[0];
+        }
+    }
+
+
+    return null;
+};
+
+
+// =====================================================
+// UPSERT BOOK
+// =====================================================
+//
+// Existing book:
+//     Update only missing information.
+//
+// New book:
+//     Insert.
+//
+// Existing non-null values:
+//     Preserve.
+//
+// Existing NULL values:
+//     Fill from Open Library.
+//
+// =====================================================
+
+const upsertBook = async (
+    connection,
+    book
+) => {
+
+    // -------------------------------------------------
+    // FIND EXISTING
+    // -------------------------------------------------
+
+    const existingBook =
+        await findExistingBook(
+            connection,
+            book
+        );
+
+
+    // -------------------------------------------------
+    // INSERT NEW BOOK
+    // -------------------------------------------------
+
+    if (
+        !existingBook
+    ) {
+
+        const [
+            result
+        ] =
+            await connection.execute(
+                `
+                INSERT INTO books
+                (
+                    open_library_key,
+                    title,
+                    subtitle,
+                    isbn10,
+                    isbn13,
+                    publisher,
+                    publish_date,
+                    first_publish_year,
+                    language,
+                    description,
+                    cover_url,
+                    page_count,
+                    data_source
+                )
+                VALUES
+                (
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?,
+                    ?, ?, ?
+                )
+                `,
+                [
+
+                    book.openLibraryKey,
+
+                    book.title,
+
+                    book.subtitle,
+
+                    book.isbn10,
+
+                    book.isbn13,
+
+                    book.publisher,
+
+                    book.publishDate,
+
+                    book.firstPublishYear,
+
+                    book.language,
+
+                    book.description,
+
+                    book.coverUrl,
+
+                    book.pageCount,
+
+                    "Open Library"
+                ]
+            );
+
+
+        return {
+
+            id:
+                result.insertId,
+
+            action:
+                "inserted"
+        };
+    }
+
+
+    // -------------------------------------------------
+    // UPDATE EXISTING BOOK
+    // -------------------------------------------------
+    //
+    // COALESCE means:
+    //
+    // Existing value stays if new value is NULL.
+    //
+    // If existing value is NULL and new value exists,
+    // the new value is stored.
+    //
+    // -------------------------------------------------
+
+    await connection.execute(
+        `
+        UPDATE books
+
+        SET
+
+            open_library_key =
+                COALESCE(
+                    open_library_key,
+                    ?
+                ),
+
+            title =
+                COALESCE(
+                    NULLIF(?, ''),
+                    title
+                ),
+
+            subtitle =
+                COALESCE(
+                    NULLIF(?, ''),
+                    subtitle
+                ),
+
+            isbn10 =
+                COALESCE(
+                    NULLIF(?, ''),
+                    isbn10
+                ),
+
+            isbn13 =
+                COALESCE(
+                    NULLIF(?, ''),
+                    isbn13
+                ),
+
+            publisher =
+                COALESCE(
+                    NULLIF(?, ''),
+                    publisher
+                ),
+
+            publish_date =
+                COALESCE(
+                    NULLIF(?, ''),
+                    publish_date
+                ),
+
+            first_publish_year =
+                COALESCE(
+                    ?,
+                    first_publish_year
+                ),
+
+            language =
+                COALESCE(
+                    NULLIF(?, ''),
+                    language
+                ),
+
+            description =
+                COALESCE(
+                    NULLIF(?, ''),
+                    description
+                ),
+
+            cover_url =
+                COALESCE(
+                    NULLIF(?, ''),
+                    cover_url
+                ),
+
+            page_count =
+                COALESCE(
+                    ?,
+                    page_count
+                ),
+
+            data_source =
+                COALESCE(
+                    NULLIF(?, ''),
+                    data_source
+                )
+
+        WHERE id = ?
+        `,
+        [
+
+            book.openLibraryKey,
+
+            book.title,
+
+            book.subtitle,
+
+            book.isbn10,
+
+            book.isbn13,
+
+            book.publisher,
+
+            book.publishDate,
+
+            book.firstPublishYear,
+
+            book.language,
+
+            book.description,
+
+            book.coverUrl,
+
+            book.pageCount,
+
+            "Open Library",
+
+            existingBook.id
+        ]
+    );
+
+
+    return {
+
+        id:
+            existingBook.id,
+
+        action:
+            "updated"
+    };
+};
+
+
+// =====================================================
+// INSERT / FIND AUTHOR
+// =====================================================
 
 const insertAuthor = async (
     connection,
     name,
     openLibraryKey = null
 ) => {
-    if (!name || !name.trim()) {
+
+    if (
+        !name ||
+        !name.trim()
+    ) {
+
         return null;
     }
+
 
     const cleanName =
         name.trim();
 
 
-    /*
-    FIND BY OPEN LIBRARY KEY
-    */
+    // -------------------------------------------------
+    // FIND BY OPEN LIBRARY KEY
+    // -------------------------------------------------
 
-    if (openLibraryKey) {
-        const [existing] =
+    if (
+        openLibraryKey
+    ) {
+
+        const [
+            rows
+        ] =
             await connection.execute(
                 `
                 SELECT id
@@ -336,20 +828,28 @@ const insertAuthor = async (
                 WHERE open_library_key = ?
                 LIMIT 1
                 `,
-                [openLibraryKey]
+                [
+                    openLibraryKey
+                ]
             );
 
-        if (existing.length > 0) {
-            return existing[0].id;
+
+        if (
+            rows.length > 0
+        ) {
+
+            return rows[0].id;
         }
     }
 
 
-    /*
-    FIND BY NAME
-    */
+    // -------------------------------------------------
+    // FIND BY NAME
+    // -------------------------------------------------
 
-    const [existingByName] =
+    const [
+        rows
+    ] =
         await connection.execute(
             `
             SELECT id
@@ -357,19 +857,27 @@ const insertAuthor = async (
             WHERE name = ?
             LIMIT 1
             `,
-            [cleanName]
+            [
+                cleanName
+            ]
         );
 
-    if (existingByName.length > 0) {
-        return existingByName[0].id;
+
+    if (
+        rows.length > 0
+    ) {
+
+        return rows[0].id;
     }
 
 
-    /*
-    INSERT
-    */
+    // -------------------------------------------------
+    // CREATE AUTHOR
+    // -------------------------------------------------
 
-    const [result] =
+    const [
+        result
+    ] =
         await connection.execute(
             `
             INSERT INTO authors
@@ -385,33 +893,45 @@ const insertAuthor = async (
             ]
         );
 
+
     return result.insertId;
 };
 
 
-/*
-=====================================================
-INSERT SUBJECT
-=====================================================
-*/
+// =====================================================
+// INSERT / FIND SUBJECT
+// =====================================================
 
 const insertSubject = async (
     connection,
     name
 ) => {
-    if (!name || !name.trim()) {
+
+    if (
+        !name ||
+        !name.trim()
+    ) {
+
         return null;
     }
 
+
     const cleanName =
-        name.trim();
+        name
+            .replace(
+                /\s+/g,
+                " "
+            )
+            .trim();
 
 
-    /*
-    FIND EXISTING
-    */
+    // -------------------------------------------------
+    // FIND EXISTING
+    // -------------------------------------------------
 
-    const [existing] =
+    const [
+        rows
+    ] =
         await connection.execute(
             `
             SELECT id
@@ -419,19 +939,27 @@ const insertSubject = async (
             WHERE name = ?
             LIMIT 1
             `,
-            [cleanName]
+            [
+                cleanName
+            ]
         );
 
-    if (existing.length > 0) {
-        return existing[0].id;
+
+    if (
+        rows.length > 0
+    ) {
+
+        return rows[0].id;
     }
 
 
-    /*
-    INSERT
-    */
+    // -------------------------------------------------
+    // CREATE SUBJECT
+    // -------------------------------------------------
 
-    const [result] =
+    const [
+        result
+    ] =
         await connection.execute(
             `
             INSERT INTO subjects
@@ -440,196 +968,44 @@ const insertSubject = async (
             )
             VALUES (?)
             `,
-            [cleanName]
+            [
+                cleanName
+            ]
         );
+
 
     return result.insertId;
 };
 
 
-/*
-=====================================================
-FIND EXISTING BOOK
-=====================================================
-*/
+// =====================================================
+// UPDATE BOOK RELATIONSHIPS
+// =====================================================
 
-const findExistingBook = async (
-    connection,
-    book
-) => {
-    /*
-    OPEN LIBRARY KEY
-    */
-
-    if (book.openLibraryKey) {
-        const [rows] =
-            await connection.execute(
-                `
-                SELECT id
-                FROM books
-                WHERE open_library_key = ?
-                LIMIT 1
-                `,
-                [book.openLibraryKey]
-            );
-
-        if (rows.length > 0) {
-            return rows[0];
-        }
-    }
-
-
-    /*
-    ISBN13
-    */
-
-    if (book.isbn13) {
-        const [rows] =
-            await connection.execute(
-                `
-                SELECT id
-                FROM books
-                WHERE isbn13 = ?
-                LIMIT 1
-                `,
-                [book.isbn13]
-            );
-
-        if (rows.length > 0) {
-            return rows[0];
-        }
-    }
-
-
-    /*
-    ISBN10
-    */
-
-    if (book.isbn10) {
-        const [rows] =
-            await connection.execute(
-                `
-                SELECT id
-                FROM books
-                WHERE isbn10 = ?
-                LIMIT 1
-                `,
-                [book.isbn10]
-            );
-
-        if (rows.length > 0) {
-            return rows[0];
-        }
-    }
-
-    return null;
-};
-
-
-/*
-=====================================================
-INSERT BOOK
-=====================================================
-*/
-
-const insertBook = async (
-    connection,
-    book
-) => {
-    const existingBook =
-        await findExistingBook(
-            connection,
-            book
-        );
-
-
-    /*
-    DUPLICATE
-    */
-
-    if (existingBook) {
-        return {
-            id: existingBook.id,
-            inserted: false,
-            duplicate: true
-        };
-    }
-
-
-    /*
-    INSERT BOOK
-    */
-
-    const [result] =
-        await connection.execute(
-            `
-            INSERT INTO books
-            (
-                open_library_key,
-                title,
-                subtitle,
-                isbn10,
-                isbn13,
-                publisher,
-                publish_date,
-                first_publish_year,
-                language,
-                cover_url,
-                page_count,
-                data_source
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
-            [
-                book.openLibraryKey,
-                book.title,
-                book.subtitle,
-                book.isbn10,
-                book.isbn13,
-                book.publisher,
-                book.publishDate,
-                book.firstPublishYear,
-                book.language,
-                book.coverUrl,
-                book.pageCount,
-                "Open Library"
-            ]
-        );
-
-    return {
-        id: result.insertId,
-        inserted: true,
-        duplicate: false
-    };
-};
-
-
-/*
-=====================================================
-CREATE BOOK RELATIONSHIPS
-=====================================================
-*/
-
-const createBookRelationships = async (
+const updateBookRelationships = async (
     connection,
     bookId,
     book
 ) => {
-    /*
-    AUTHORS
-    */
+
+    // -------------------------------------------------
+    // AUTHORS
+    // -------------------------------------------------
 
     for (
         let index = 0;
         index < book.authors.length;
         index++
     ) {
+
         const authorName =
             book.authors[index];
+
 
         const authorKey =
             book.authorKeys[index] ||
             null;
+
 
         const authorId =
             await insertAuthor(
@@ -638,7 +1014,11 @@ const createBookRelationships = async (
                 authorKey
             );
 
-        if (authorId) {
+
+        if (
+            authorId
+        ) {
+
             await connection.execute(
                 `
                 INSERT IGNORE INTO book_authors
@@ -657,20 +1037,25 @@ const createBookRelationships = async (
     }
 
 
-    /*
-    SUBJECTS
-    */
+    // -------------------------------------------------
+    // SUBJECTS
+    // -------------------------------------------------
 
     for (
         const subject of book.subjects
     ) {
+
         const subjectId =
             await insertSubject(
                 connection,
                 subject
             );
 
-        if (subjectId) {
+
+        if (
+            subjectId
+        ) {
+
             await connection.execute(
                 `
                 INSERT IGNORE INTO book_subjects
@@ -690,55 +1075,97 @@ const createBookRelationships = async (
 };
 
 
-/*
-=====================================================
-IMPORT BOOKS
-=====================================================
-*/
+// =====================================================
+// IMPORT BOOKS
+// =====================================================
 
-export const importBooks = async (count) => {
+export const importBooks = async (
+    count
+) => {
+
+    // -------------------------------------------------
+    // VALIDATE COUNT
+    // -------------------------------------------------
+
     const importCount =
-        validateImportSize(count);
+        validateImportSize(
+            count
+        );
+
+
+    // -------------------------------------------------
+    // DATABASE CONNECTION
+    // -------------------------------------------------
 
     const connection =
         await pool.getConnection();
 
+
+    // -------------------------------------------------
+    // SUMMARY
+    // -------------------------------------------------
+
     const summary = {
-        requested: importCount,
-        fetched: 0,
-        imported: 0,
-        duplicates: 0,
-        skipped: 0,
-        failed: 0
+
+        requested:
+            importCount,
+
+        fetched:
+            0,
+
+        inserted:
+            0,
+
+        updated:
+            0,
+
+        duplicates:
+            0,
+
+        skipped:
+            0,
+
+        failed:
+            0
     };
 
+
     try {
+
+        // -------------------------------------------------
+        // START TRANSACTION
+        // -------------------------------------------------
+
         await connection.beginTransaction();
 
 
-        /*
-        =============================================
-        FETCH BOOKS
-        =============================================
-        */
+        // -------------------------------------------------
+        // FETCH BOOKS
+        // -------------------------------------------------
 
         const books = [];
 
-        const pageSize = 100;
+        const pageSize =
+            100;
+
 
         const totalPages =
             Math.ceil(
-                importCount / pageSize
+                importCount /
+                pageSize
             );
+
 
         for (
             let page = 1;
             page <= totalPages;
             page++
         ) {
+
             const remaining =
                 importCount -
                 books.length;
+
 
             const limit =
                 Math.min(
@@ -746,63 +1173,75 @@ export const importBooks = async (count) => {
                     remaining
                 );
 
+
             const query =
                 IMPORT_SEARCH_QUERIES[
                     (page - 1) %
                     IMPORT_SEARCH_QUERIES.length
                 ];
 
+
             console.log(
                 `Fetching Open Library page ${page}/${totalPages}`
             );
+
 
             console.log(
                 `Query: ${query}`
             );
 
+
             console.log(
                 `Limit: ${limit}`
             );
 
+
             const result =
                 await searchBooks({
+
                     query,
+
                     page,
+
                     limit
                 });
 
+
             const docs =
-                result.docs || [];
+                Array.isArray(
+                    result?.docs
+                )
+                    ? result.docs
+                    : [];
+
 
             console.log(
                 `Received ${docs.length} books`
             );
 
-            if (docs.length === 0) {
-                break;
-            }
 
             books.push(
                 ...docs
             );
 
+
             summary.fetched =
                 books.length;
+
 
             if (
                 books.length >=
                 importCount
             ) {
+
                 break;
             }
         }
 
 
-        /*
-        =============================================
-        PROCESS BOOKS
-        =============================================
-        */
+        // -------------------------------------------------
+        // PROCESS BOOKS
+        // -------------------------------------------------
 
         for (
             const rawBook of books.slice(
@@ -810,135 +1249,187 @@ export const importBooks = async (count) => {
                 importCount
             )
         ) {
+
             try {
 
-                /*
-                -------------------------------------
-                NORMALIZE
-                -------------------------------------
-                */
+                // -----------------------------------------
+                // NORMALIZE
+                // -----------------------------------------
 
                 const normalizedBook =
                     normalizeBook(
                         rawBook
                     );
 
-                if (!normalizedBook) {
-                    summary.skipped++;
 
-                    console.log(
-                        "Skipped: unable to normalize book"
-                    );
+                if (
+                    !normalizedBook
+                ) {
+
+                    summary.skipped++;
 
                     continue;
                 }
 
 
-                /*
-                -------------------------------------
-                CLEAN + VALIDATE
-                -------------------------------------
-                */
+                // -----------------------------------------
+                // CLEAN + VALIDATE
+                // -----------------------------------------
 
                 const validation =
                     cleanAndValidateBook(
                         normalizedBook
                     );
 
-                if (!validation.valid) {
+
+                if (
+                    !validation.valid
+                ) {
+
                     summary.skipped++;
+
 
                     console.log(
                         `Skipped book: ${normalizedBook.title}`
                     );
+
 
                     console.log(
                         "Validation errors:",
                         validation.errors
                     );
 
+
                     continue;
                 }
+
 
                 const book =
                     validation.book;
 
 
-                /*
-                -------------------------------------
-                INSERT BOOK
-                -------------------------------------
-                */
+                // -----------------------------------------
+                // CHECK DUPLICATE
+                // -----------------------------------------
 
-                const result =
-                    await insertBook(
+                const existingBook =
+                    await findExistingBook(
                         connection,
                         book
                     );
 
 
-                /*
-                -------------------------------------
-                DUPLICATE
-                -------------------------------------
-                */
+                // -----------------------------------------
+                // UPSERT
+                // -----------------------------------------
 
-                if (result.duplicate) {
-                    summary.duplicates++;
-
-                    continue;
-                }
+                const result =
+                    await upsertBook(
+                        connection,
+                        book
+                    );
 
 
-                /*
-                -------------------------------------
-                AUTHORS + SUBJECTS
-                -------------------------------------
-                */
+                // -----------------------------------------
+                // RELATIONSHIPS
+                // -----------------------------------------
 
-                await createBookRelationships(
+                await updateBookRelationships(
                     connection,
                     result.id,
                     book
                 );
 
-                summary.imported++;
+
+                // -----------------------------------------
+                // SUMMARY
+                // -----------------------------------------
+
+                if (
+                    result.action ===
+                    "inserted"
+                ) {
+
+                    summary.inserted++;
+
+                } else {
+
+                    summary.updated++;
+
+                    if (
+                        existingBook
+                    ) {
+
+                        summary.duplicates++;
+                    }
+                }
+
 
             } catch (error) {
 
                 console.error(
-                    "Book import failed:",
-                    error.message
+                    `Book import failed: ${error.message}`
                 );
+
 
                 summary.failed++;
             }
         }
 
 
-        /*
-        =============================================
-        COMMIT
-        =============================================
-        */
+        // -------------------------------------------------
+        // COMMIT
+        // -------------------------------------------------
 
         await connection.commit();
 
+
+        console.log(
+            "======================================"
+        );
+
+
+        console.log(
+            "BOOK IMPORT COMPLETED"
+        );
+
+
+        console.log(
+            "======================================"
+        );
+
+
+        console.log(
+            summary
+        );
+
+
         return summary;
+
 
     } catch (error) {
 
-        /*
-        =============================================
-        ROLLBACK
-        =============================================
-        */
+        // -------------------------------------------------
+        // ROLLBACK
+        // -------------------------------------------------
 
         await connection.rollback();
 
+
+        console.error(
+            "Book import transaction failed:",
+            error
+        );
+
+
         throw error;
 
+
     } finally {
+
+        // -------------------------------------------------
+        // RELEASE CONNECTION
+        // -------------------------------------------------
 
         connection.release();
     }
