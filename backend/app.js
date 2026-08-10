@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 
 import healthRoutes from "./routes/healthRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import openLibraryRoutes from "./routes/openLibraryRoutes.js";
+import importRoutes from "./routes/importRoutes.js";
 
 import { notFoundMiddleware } from "./middleware/notFoundMiddleware.js";
 import { errorMiddleware } from "./middleware/errorMiddleware.js";
@@ -33,6 +35,8 @@ app.use(
 // API ROUTES
 app.use("/api/health", healthRoutes);
 app.use("/api/auth",authRoutes);
+app.use("/api/open-library",openLibraryRoutes);
+app.use("/api/import", importRoutes);
 
 
 // ROOT ROUTE

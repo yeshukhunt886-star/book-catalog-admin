@@ -1,11 +1,27 @@
+import express from "express";
+
+import {
+    startBookImport
+} from "../controllers/importController.js";
+
+import {
+    authenticateAdmin
+} from "../middleware/authMiddleware.js";
+
+const router = express.Router();
+
+
+/*
+=====================================================
+IMPORT BOOKS
+=====================================================
+*/
+
 router.post(
-    "/start",
+    "/books",
     authenticateAdmin,
-    startImport
+    startBookImport
 );
 
-router.get(
-    "/summary",
-    authenticateAdmin,
-    getSummaryReport
-);
+
+export default router;
