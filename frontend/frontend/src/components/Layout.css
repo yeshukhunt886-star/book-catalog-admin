@@ -1,0 +1,25 @@
+.app-layout {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Space for the fixed sidebar */
+.main-content {
+  margin-left: 195px;
+  width: calc(100% - 195px);
+  min-height: 100vh;
+
+  box-sizing: border-box;
+
+  padding: 0;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+}

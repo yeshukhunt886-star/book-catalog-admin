@@ -1,0 +1,150 @@
+.subject-details-page {
+  min-height: 100vh;
+  padding: 30px;
+  background: #f5f7fb;
+  box-sizing: border-box;
+}
+
+.subject-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.subject-details-header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  color: #111827;
+}
+
+.subject-details-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.subject-back-button {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 7px;
+  background: #374151;
+  color: white;
+  cursor: pointer;
+}
+
+.subject-back-button:hover {
+  background: #1f2937;
+}
+
+.subject-details-card,
+.subject-books-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+.subject-details-card {
+  padding: 25px;
+}
+
+.subject-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.subject-info-row:last-child {
+  border-bottom: none;
+}
+
+.subject-info-row span {
+  color: #6b7280;
+}
+
+.subject-info-row strong {
+  color: #111827;
+}
+
+.subject-books-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.subject-books-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.subject-books-header span {
+  color: #6b7280;
+}
+
+.subject-books-table-wrapper {
+  overflow-x: auto;
+}
+
+.subject-books-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.subject-books-card th,
+.subject-books-card td {
+  padding: 13px 20px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.subject-books-card th {
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+}
+
+.subject-books-card td {
+  color: #4b5563;
+}
+
+.no-subject-books {
+  padding: 40px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.subject-details-loading {
+  padding: 50px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.subject-details-error {
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 700px) {
+  .subject-details-page {
+    padding: 18px;
+  }
+
+  .subject-details-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .subject-info-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

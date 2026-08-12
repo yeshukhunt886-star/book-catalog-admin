@@ -1,0 +1,191 @@
+
+.create-book-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.create-book-main {
+  flex: 1;
+  margin-left: 195px;
+  padding: 30px;
+}
+
+.create-book-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.create-book-header h1 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 28px;
+}
+
+.create-book-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.back-button {
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  background: #f1f5f9;
+}
+
+.create-book-card {
+  max-width: 1000px;
+  padding: 30px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.create-book-card h2 {
+  margin-top: 0;
+  margin-bottom: 22px;
+  color: #1e293b;
+}
+
+.create-book-error {
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-group input {
+  height: 42px;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #2563eb;
+}
+
+.create-book-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.cancel-button,
+.save-book-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-button {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #475569;
+}
+
+.cancel-button:hover {
+  background: #f1f5f9;
+}
+
+.save-book-button {
+  border: none;
+  background: #2563eb;
+  color: white;
+}
+
+.save-book-button:hover {
+  background: #1d4ed8;
+}
+
+.save-book-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .create-book-main {
+    margin-left: 0;
+    padding: 20px 15px;
+  }
+
+  .create-book-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .back-button {
+    width: 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
+
+  .create-book-actions {
+    flex-direction: column-reverse;
+  }
+
+  .cancel-button,
+  .save-book-button {
+    width: 100%;
+  }
+}
+

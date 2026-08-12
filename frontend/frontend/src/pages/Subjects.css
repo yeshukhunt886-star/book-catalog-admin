@@ -1,0 +1,263 @@
+.subjects-page {
+  width: 100%;
+}
+
+.subjects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.subjects-header h1 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 28px;
+}
+
+.subjects-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.refresh-button {
+  padding: 10px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.refresh-button:hover {
+  background: #f1f5f9;
+}
+
+.subjects-error {
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.subjects-success {
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.subject-create-card,
+.subjects-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.subject-create-card h2,
+.subjects-card h2 {
+  margin-top: 0;
+  color: #1e293b;
+}
+
+.subject-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.subject-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-form-group label {
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.subject-form-group input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.subject-form-group input:focus {
+  border-color: #2563eb;
+}
+
+.subject-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.create-subject-button,
+.clear-subject-button {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.create-subject-button {
+  border: none;
+  background: #2563eb;
+  color: white;
+}
+
+.create-subject-button:hover {
+  background: #1d4ed8;
+}
+
+.create-subject-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clear-subject-button {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #475569;
+}
+
+.clear-subject-button:hover {
+  background: #f1f5f9;
+}
+
+.subjects-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.subjects-card-header h2 {
+  margin-bottom: 5px;
+}
+
+.subjects-card-header span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.subject-search {
+  width: 250px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+}
+
+.subject-search:focus {
+  border-color: #2563eb;
+}
+
+.subjects-table-wrapper {
+  overflow-x: auto;
+}
+
+.subjects-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.subjects-table th,
+.subjects-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.subjects-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+}
+
+.subjects-table td {
+  color: #334155;
+  font-size: 14px;
+}
+
+.table-message {
+  text-align: center !important;
+  padding: 30px !important;
+  color: #64748b !important;
+}
+
+@media (max-width: 768px) {
+  .subjects-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .subject-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subjects-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .subject-search {
+    width: 100%;
+  }
+}
+
+.subject-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-subject-button,
+.delete-subject-button {
+  padding: 7px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-subject-button {
+  border: 1px solid #2563eb;
+  background: white;
+  color: #2563eb;
+}
+
+.edit-subject-button:hover {
+  background: #2563eb;
+  color: white;
+}
+
+.delete-subject-button {
+  border: 1px solid #dc2626;
+  background: white;
+  color: #dc2626;
+}
+
+.delete-subject-button:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-subject-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,300 @@
+.audit-logs-page {
+  padding: 30px;
+  min-height: 100vh;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+/* HEADER */
+
+.audit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.audit-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #1e293b;
+}
+
+.audit-header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.audit-total {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 15px 25px;
+  text-align: center;
+  min-width: 110px;
+}
+
+.audit-total span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.audit-total strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 24px;
+  color: #1e293b;
+}
+
+/* FILTERS */
+
+.audit-filters {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 25px;
+}
+
+.audit-filters form {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.filter-group input {
+  width: 210px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.filter-group input:focus {
+  border-color: #2563eb;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.search-button,
+.clear-button {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-button {
+  border: none;
+  background: #2563eb;
+  color: white;
+}
+
+.search-button:hover {
+  background: #1d4ed8;
+}
+
+.clear-button {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #334155;
+}
+
+.clear-button:hover {
+  background: #f1f5f9;
+}
+
+/* TABLE */
+
+.audit-table-container {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  min-width: 1050px;
+  border-collapse: collapse;
+}
+
+.audit-table th {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  padding: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.audit-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.audit-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.action-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.module-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.description-cell {
+  min-width: 240px;
+}
+
+/* LOADING */
+
+.audit-loading {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 50px;
+  text-align: center;
+  color: #64748b;
+}
+
+/* EMPTY */
+
+.audit-empty {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 45px;
+  margin-bottom: 10px;
+}
+
+.audit-empty h3 {
+  margin: 0;
+  color: #334155;
+}
+
+.audit-empty p {
+  color: #64748b;
+}
+
+/* ERROR */
+
+.audit-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 14px;
+  border-radius: 7px;
+  margin-bottom: 20px;
+}
+
+/* PAGINATION */
+
+.audit-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 15px 0;
+}
+
+.audit-pagination button {
+  padding: 9px 16px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #334155;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.audit-pagination button:hover:not(:disabled) {
+  background: #f1f5f9;
+}
+
+.audit-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.audit-pagination span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+  .audit-logs-page {
+    padding: 20px;
+  }
+
+  .audit-header {
+    align-items: flex-start;
+    gap: 15px;
+    flex-direction: column;
+  }
+
+  .audit-filters form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-group input {
+    width: 100%;
+  }
+
+  .filter-buttons {
+    width: 100%;
+  }
+
+  .search-button,
+  .clear-button {
+    flex: 1;
+  }
+}
