@@ -13,23 +13,35 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
-  try {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    await login(email, password);
+  try {
+    await login(email.trim(), password);
 
     navigate("/dashboard");
 
   } catch (error) {
-    setError(
-      error.response?.data?.message ||
-      error.message ||
-      "Login failed"
+    console.error(
+      "LOGIN ERROR:",
+      error.response?.data || error.message
     );
+
+    if (error.response?.status === 403) {
+      setError(
+        error.response?.data?.message ||
+        "Your account is inactive."
+      );
+    } else {
+      setError(
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed"
+      );
+    }
   } finally {
     setLoading(false);
   }
