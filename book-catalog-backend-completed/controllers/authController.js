@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import pool from "../config/db.js";
 import { generateToken } from "../utils/jwt.js";
+import { blacklistToken } from "../utils/tokenBlacklist.js";
 
 // =====================================================
 // ADMIN REGISTRATION
@@ -222,9 +223,53 @@ export const getCurrentAdmin = async (req, res, next) => {
     }
 };
 
+// =====================================================
+// ADMIN LOGOUT
 // POST /api/auth/logout
+// =====================================================
+
 export const logoutAdmin = async (req, res, next) => {
     try {
-        return res.status(200).json({ success: true, message: "Logout successful" });
-    } catch (error) { next(error); }
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token is required"
+            });
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token is required"
+            });
+        }
+
+        // Decode token to get expiration time
+        const decoded = req.user;
+
+        if (!decoded || !decoded.exp) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid access token"
+            });
+        }
+
+        // JWT exp is in seconds, Date.now() is milliseconds
+        const expiresAt = decoded.exp * 1000;
+
+        // Add token to blacklist
+        blacklistToken(token, expiresAt);
+
+        return res.status(200).json({
+            success: true,
+            message: "Logout successful"
+        });
+
+    } catch (error) {
+        next(error);
+    }
 };

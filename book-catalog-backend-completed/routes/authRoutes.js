@@ -40,18 +40,27 @@ router.post(
 // =====================================================
 // GET CURRENT ADMIN
 // GET /api/auth/me
-// ADMIN AUTHENTICATED
 // =====================================================
 
 router.get(
     "/me",
     authenticateAdmin,
     requireAdmin,
-    getCurrentAdmin,
+    getCurrentAdmin
+);
+
+
+// =====================================================
+// ADMIN LOGOUT
+// POST /api/auth/logout
+// =====================================================
+
+router.post(
+    "/logout",
+    authenticateAdmin,
+    requireAdmin,
     logoutAdmin
 );
 
 
 export default router;
-
-router.post("/logout", authenticateAdmin, requireAdmin, logoutAdmin);

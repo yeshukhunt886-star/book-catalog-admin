@@ -1,13 +1,15 @@
 import jwt from "jsonwebtoken";
+import { isTokenBlacklisted } from "../utils/tokenBlacklist.js";
 
 // =====================================================
-// AUTHENTICATE USER
+// AUTHENTICATE ADMIN
 // =====================================================
 
 export const authenticateAdmin = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
+        // Check Authorization header
         if (!authHeader) {
             return res.status(401).json({
                 success: false,
@@ -15,6 +17,7 @@ export const authenticateAdmin = async (req, res, next) => {
             });
         }
 
+        // Check Bearer format
         if (!authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
@@ -24,6 +27,7 @@ export const authenticateAdmin = async (req, res, next) => {
 
         const token = authHeader.split(" ")[1];
 
+        // Check token exists
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -31,12 +35,28 @@ export const authenticateAdmin = async (req, res, next) => {
             });
         }
 
+        // =====================================================
+        // CHECK TOKEN BLACKLIST
+        // =====================================================
+
+        if (isTokenBlacklisted(token)) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token has been revoked",
+            });
+        }
+
+        // =====================================================
+        // VERIFY JWT
+        // =====================================================
+
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
 
         req.user = decoded;
+        req.admin = decoded;
 
         next();
 
@@ -46,6 +66,7 @@ export const authenticateAdmin = async (req, res, next) => {
             error
         );
 
+        // Expired token
         if (error.name === "TokenExpiredError") {
             return res.status(401).json({
                 success: false,
@@ -53,6 +74,7 @@ export const authenticateAdmin = async (req, res, next) => {
             });
         }
 
+        // Invalid/tampered token
         if (error.name === "JsonWebTokenError") {
             return res.status(401).json({
                 success: false,
@@ -105,7 +127,6 @@ export const authorizeRole = (...allowedRoles) => {
 
 // =====================================================
 // ADMIN ONLY
-// POST / PATCH / DELETE
 // =====================================================
 
 export const requireAdmin =
@@ -114,7 +135,6 @@ export const requireAdmin =
 
 // =====================================================
 // ADMIN + VIEWER
-// GET / READ ONLY
 // =====================================================
 
 export const requireAdminOrViewer =
