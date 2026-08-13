@@ -1,55 +1,85 @@
-
 import express from "express";
 
 import {
     getReportsSummary,
-    exportBooksCSV,
     getBooksReport,
-    getDataQualityReport
+    exportBooksCSV,
+    getDataQualityReport,
+    getBooksBySubject,
+    getBooksByPublishYear,
+    getTopAuthors,
+    getImportHistory,
+    exportReportsCSV
 } from "../controllers/reportController.js";
 
 import {
-    authenticateAdmin
+    authenticateAdmin,
+    requireAdmin
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-/*
-=====================================================
-REPORTS SUMMARY
-GET /api/reports/summary
-=====================================================
-*/
 router.get(
     "/summary",
     authenticateAdmin,
+    requireAdmin,
     getReportsSummary
 );
 
-/*
-=====================================================
-BOOKS REPORT
-GET /api/reports/books
-=====================================================
-*/
 router.get(
     "/books",
     authenticateAdmin,
-    getBooksReport,
-    getDataQualityReport
+    requireAdmin,
+    getBooksReport
 );
 
-/*
-=====================================================
-CSV EXPORT
-GET /api/reports/books/export/csv
-=====================================================
-*/
 router.get(
-    "/books/export/csv",
+    "/books/export",
     authenticateAdmin,
+    requireAdmin,
     exportBooksCSV
 );
 
+router.get(
+    "/data-quality",
+    authenticateAdmin,
+    requireAdmin,
+    getDataQualityReport
+);
+
+router.get(
+    "/subjects",
+    authenticateAdmin,
+    requireAdmin,
+    getBooksBySubject
+);
+
+router.get(
+    "/publish-years",
+    authenticateAdmin,
+    requireAdmin,
+    getBooksByPublishYear
+);
+
+router.get(
+    "/authors",
+    authenticateAdmin,
+    requireAdmin,
+    getTopAuthors
+);
+
+router.get(
+    "/import-history",
+    authenticateAdmin,
+    requireAdmin,
+    getImportHistory
+);
+
+router.get(
+    "/export",
+    authenticateAdmin,
+    requireAdmin,
+    exportReportsCSV
+);
+
 export default router;
-router.get("/data-quality", authenticateAdmin, getDataQualityReport);

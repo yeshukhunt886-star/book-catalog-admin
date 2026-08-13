@@ -838,3 +838,382 @@ export const getDataQualityReport = async (req, res) => {
         });
     }
 };
+/*
+=====================================================
+STEP 15.4 — BOOKS BY SUBJECT
+GET /api/reports/subjects
+=====================================================
+*/
+
+export const getBooksBySubject = async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT
+                s.id,
+                s.name,
+                COUNT(DISTINCT bs.book_id) AS bookCount
+            FROM subjects s
+            INNER JOIN book_subjects bs
+                ON bs.subject_id = s.id
+            GROUP BY
+                s.id,
+                s.name
+            ORDER BY
+                bookCount DESC,
+                s.name ASC
+        `);
+
+        return res.status(200).json({
+            success: true,
+            message: "Books grouped by subject fetched successfully",
+            data: rows.map(row => ({
+                id: Number(row.id),
+                name: row.name,
+                bookCount: Number(row.bookCount || 0)
+            }))
+        });
+
+    } catch (error) {
+        console.error("BOOKS BY SUBJECT ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch books by subject"
+        });
+    }
+};
+
+
+/*
+=====================================================
+STEP 15.5 — BOOKS BY PUBLISH YEAR
+GET /api/reports/publish-years
+=====================================================
+*/
+
+export const getBooksByPublishYear = async (req, res) => {
+    try {
+        const [rows] = await pool.execute(`
+            SELECT
+                first_publish_year AS publishYear,
+                COUNT(*) AS bookCount
+            FROM books
+            WHERE
+                first_publish_year IS NOT NULL
+                AND first_publish_year > 0
+            GROUP BY
+                first_publish_year
+            ORDER BY
+                first_publish_year ASC
+        `);
+
+        return res.status(200).json({
+            success: true,
+            message: "Books grouped by publish year fetched successfully",
+            data: rows.map(row => ({
+                publishYear: Number(row.publishYear),
+                bookCount: Number(row.bookCount || 0)
+            }))
+        });
+
+    } catch (error) {
+        console.error("BOOKS BY PUBLISH YEAR ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch books by publish year"
+        });
+    }
+};
+
+
+/*
+=====================================================
+STEP 15.6 — TOP AUTHORS
+GET /api/reports/authors
+=====================================================
+*/
+
+export const getTopAuthors = async (req, res) => {
+    try {
+        const limit = Math.min(
+            Math.max(Number(req.query.limit) || 20, 1),
+            100
+        );
+
+        const [rows] = await pool.execute(`
+            SELECT
+                a.id,
+                a.name,
+                COUNT(DISTINCT ba.book_id) AS bookCount
+            FROM authors a
+            INNER JOIN book_authors ba
+                ON ba.author_id = a.id
+            GROUP BY
+                a.id,
+                a.name
+            ORDER BY
+                bookCount DESC,
+                a.name ASC
+            LIMIT ${limit}
+        `);
+
+        return res.status(200).json({
+            success: true,
+            message: "Top authors fetched successfully",
+            data: rows.map(row => ({
+                id: Number(row.id),
+                name: row.name,
+                bookCount: Number(row.bookCount || 0)
+            }))
+        });
+
+    } catch (error) {
+        console.error("TOP AUTHORS ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch top authors"
+        });
+    }
+};
+
+
+/*
+=====================================================
+STEP 15.7 — IMPORT HISTORY
+GET /api/reports/import-history
+=====================================================
+*/
+
+export const getImportHistory = async (req, res) => {
+    try {
+        const limit = Math.min(
+            Math.max(Number(req.query.limit) || 20, 1),
+            100
+        );
+
+        const [rows] = await pool.execute(`
+            SELECT
+                id,
+                admin_id,
+                requested_count,
+                processed_count,
+                imported_count,
+                updated_count,
+                skipped_count,
+                failed_count,
+                status,
+                error_message,
+                started_at,
+                completed_at,
+                created_at
+            FROM import_jobs
+            ORDER BY id DESC
+            LIMIT ${limit}
+        `);
+
+        return res.status(200).json({
+            success: true,
+            message: "Import history fetched successfully",
+            data: rows.map(row => ({
+                id: Number(row.id),
+
+                adminId:
+                    row.admin_id !== null
+                        ? Number(row.admin_id)
+                        : null,
+
+                requestedCount:
+                    Number(row.requested_count || 0),
+
+                processedCount:
+                    Number(row.processed_count || 0),
+
+                importedCount:
+                    Number(row.imported_count || 0),
+
+                updatedCount:
+                    Number(row.updated_count || 0),
+
+                skippedCount:
+                    Number(row.skipped_count || 0),
+
+                failedCount:
+                    Number(row.failed_count || 0),
+
+                status: row.status,
+
+                errorMessage:
+                    row.error_message || null,
+
+                startedAt: row.started_at,
+                completedAt: row.completed_at,
+                createdAt: row.created_at
+            }))
+        });
+
+    } catch (error) {
+        console.error("IMPORT HISTORY ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch import history"
+        });
+    }
+};
+
+
+/*
+=====================================================
+STEP 15.8 — EXPORT REPORTS CSV
+GET /api/reports/export
+=====================================================
+
+Exports:
+- Books by subject
+- Books by publish year
+- Top authors
+=====================================================
+*/
+
+export const exportReportsCSV = async (req, res) => {
+    try {
+
+        /*
+        =============================================
+        BOOKS BY SUBJECT
+        =============================================
+        */
+
+        const [subjectRows] = await pool.execute(`
+            SELECT
+                s.name AS subject,
+                COUNT(DISTINCT bs.book_id) AS bookCount
+            FROM subjects s
+            INNER JOIN book_subjects bs
+                ON bs.subject_id = s.id
+            GROUP BY
+                s.id,
+                s.name
+            ORDER BY
+                bookCount DESC,
+                s.name ASC
+        `);
+
+
+        /*
+        =============================================
+        BOOKS BY PUBLISH YEAR
+        =============================================
+        */
+
+        const [yearRows] = await pool.execute(`
+            SELECT
+                first_publish_year AS publishYear,
+                COUNT(*) AS bookCount
+            FROM books
+            WHERE
+                first_publish_year IS NOT NULL
+                AND first_publish_year > 0
+            GROUP BY
+                first_publish_year
+            ORDER BY
+                first_publish_year ASC
+        `);
+
+
+        /*
+        =============================================
+        TOP AUTHORS
+        =============================================
+        */
+
+        const [authorRows] = await pool.execute(`
+            SELECT
+                a.name AS author,
+                COUNT(DISTINCT ba.book_id) AS bookCount
+            FROM authors a
+            INNER JOIN book_authors ba
+                ON ba.author_id = a.id
+            GROUP BY
+                a.id,
+                a.name
+            ORDER BY
+                bookCount DESC,
+                a.name ASC
+            LIMIT 100
+        `);
+
+
+        /*
+        =============================================
+        COMBINE REPORT DATA
+        =============================================
+        */
+
+        const reportRows = [];
+
+
+        subjectRows.forEach(row => {
+            reportRows.push({
+                reportType: "Books By Subject",
+                name: row.subject,
+                year: "",
+                bookCount: Number(row.bookCount || 0)
+            });
+        });
+
+
+        yearRows.forEach(row => {
+            reportRows.push({
+                reportType: "Books By Publish Year",
+                name: "",
+                year: Number(row.publishYear),
+                bookCount: Number(row.bookCount || 0)
+            });
+        });
+
+
+        authorRows.forEach(row => {
+            reportRows.push({
+                reportType: "Top Authors",
+                name: row.author,
+                year: "",
+                bookCount: Number(row.bookCount || 0)
+            });
+        });
+
+
+        const csv = convertToCSV(reportRows);
+
+
+        res.setHeader(
+            "Content-Type",
+            "text/csv; charset=utf-8"
+        );
+
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=reports.csv"
+        );
+
+        return res.status(200).send(csv);
+
+    } catch (error) {
+
+        console.error(
+            "REPORT CSV EXPORT ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to export reports CSV",
+            error:
+                process.env.NODE_ENV === "development"
+                    ? error.message
+                    : undefined
+        });
+    }
+};

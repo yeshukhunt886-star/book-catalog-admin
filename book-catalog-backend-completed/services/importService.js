@@ -65,9 +65,7 @@ export const validateImportSize = (count) => {
     const importCount = Number(count);
 
     if (
-        !ALLOWED_IMPORT_SIZES.includes(
-            importCount
-        )
+        !ALLOWED_IMPORT_SIZES.includes(importCount)
     ) {
 
         const error = new Error(
@@ -133,9 +131,7 @@ const normalizeBook = (book) => {
     let isbn10 = null;
     let isbn13 = null;
 
-    for (
-        const isbn of isbnList
-    ) {
+    for (const isbn of isbnList) {
 
         if (
             typeof isbn !== "string"
@@ -145,10 +141,7 @@ const normalizeBook = (book) => {
 
         const clean =
             isbn
-                .replace(
-                    /[-\s]/g,
-                    ""
-                )
+                .replace(/[-\s]/g, "")
                 .trim()
                 .toUpperCase();
 
@@ -173,13 +166,9 @@ const normalizeBook = (book) => {
     // =============================================
 
     const publisher =
-        Array.isArray(
-            book.publisher
-        ) &&
+        Array.isArray(book.publisher) &&
         book.publisher.length > 0
-            ? String(
-                book.publisher[0]
-            ).trim()
+            ? String(book.publisher[0]).trim()
             : null;
 
 
@@ -188,13 +177,9 @@ const normalizeBook = (book) => {
     // =============================================
 
     const publishDate =
-        Array.isArray(
-            book.publish_date
-        ) &&
+        Array.isArray(book.publish_date) &&
         book.publish_date.length > 0
-            ? String(
-                book.publish_date[0]
-            ).trim()
+            ? String(book.publish_date[0]).trim()
             : null;
 
 
@@ -203,9 +188,7 @@ const normalizeBook = (book) => {
     // =============================================
 
     const firstPublishYear =
-        Number.isInteger(
-            book.first_publish_year
-        )
+        Number.isInteger(book.first_publish_year)
             ? book.first_publish_year
             : null;
 
@@ -215,13 +198,9 @@ const normalizeBook = (book) => {
     // =============================================
 
     const language =
-        Array.isArray(
-            book.language
-        ) &&
+        Array.isArray(book.language) &&
         book.language.length > 0
-            ? String(
-                book.language[0]
-            ).trim()
+            ? String(book.language[0]).trim()
             : null;
 
 
@@ -240,9 +219,7 @@ const normalizeBook = (book) => {
     // =============================================
 
     const pageCount =
-        Number.isInteger(
-            book.number_of_pages_median
-        )
+        Number.isInteger(book.number_of_pages_median)
             ? book.number_of_pages_median
             : null;
 
@@ -252,9 +229,7 @@ const normalizeBook = (book) => {
     // =============================================
 
     const authors =
-        Array.isArray(
-            book.author_name
-        )
+        Array.isArray(book.author_name)
             ? book.author_name
                 .filter(
                     (name) =>
@@ -273,9 +248,7 @@ const normalizeBook = (book) => {
     // =============================================
 
     const authorKeys =
-        Array.isArray(
-            book.author_key
-        )
+        Array.isArray(book.author_key)
             ? book.author_key
                 .filter(
                     (key) =>
@@ -294,9 +267,7 @@ const normalizeBook = (book) => {
     // =============================================
 
     const subjects =
-        Array.isArray(
-            book.subject
-        )
+        Array.isArray(book.subject)
             ? [
                 ...new Set(
                     book.subject
@@ -307,10 +278,7 @@ const normalizeBook = (book) => {
                         .map(
                             (subject) =>
                                 subject
-                                    .replace(
-                                        /\s+/g,
-                                        " "
-                                    )
+                                    .replace(/\s+/g, " ")
                                     .trim()
                         )
                         .filter(Boolean)
@@ -397,13 +365,9 @@ const findExistingBook = async (
     // 1. OPEN LIBRARY KEY
     // =============================================
 
-    if (
-        book.openLibraryKey
-    ) {
+    if (book.openLibraryKey) {
 
-        const [
-            rows
-        ] =
+        const [rows] =
             await connection.execute(
                 `
                 SELECT id
@@ -416,9 +380,7 @@ const findExistingBook = async (
                 ]
             );
 
-        if (
-            rows.length > 0
-        ) {
+        if (rows.length > 0) {
             return rows[0];
         }
     }
@@ -428,13 +390,9 @@ const findExistingBook = async (
     // 2. ISBN-13
     // =============================================
 
-    if (
-        book.isbn13
-    ) {
+    if (book.isbn13) {
 
-        const [
-            rows
-        ] =
+        const [rows] =
             await connection.execute(
                 `
                 SELECT id
@@ -447,9 +405,7 @@ const findExistingBook = async (
                 ]
             );
 
-        if (
-            rows.length > 0
-        ) {
+        if (rows.length > 0) {
             return rows[0];
         }
     }
@@ -459,13 +415,9 @@ const findExistingBook = async (
     // 3. ISBN-10
     // =============================================
 
-    if (
-        book.isbn10
-    ) {
+    if (book.isbn10) {
 
-        const [
-            rows
-        ] =
+        const [rows] =
             await connection.execute(
                 `
                 SELECT id
@@ -478,9 +430,7 @@ const findExistingBook = async (
                 ]
             );
 
-        if (
-            rows.length > 0
-        ) {
+        if (rows.length > 0) {
             return rows[0];
         }
     }
@@ -510,13 +460,9 @@ const upsertBook = async (
     // INSERT NEW BOOK
     // =============================================
 
-    if (
-        !existingBook
-    ) {
+    if (!existingBook) {
 
-        const [
-            result
-        ] =
+        const [result] =
             await connection.execute(
                 `
                 INSERT INTO books
@@ -553,7 +499,6 @@ const upsertBook = async (
                     "Open Library"
                 ]
             );
-
 
         return {
             id: result.insertId,
@@ -652,33 +597,19 @@ const upsertBook = async (
         WHERE id = ?
         `,
         [
-
             book.openLibraryKey,
-
             book.title,
-
             book.subtitle,
-
             book.isbn10,
-
             book.isbn13,
-
             book.publisher,
-
             book.publishDate,
-
             book.firstPublishYear,
-
             book.language,
-
             book.description,
-
             book.coverUrl,
-
             book.pageCount,
-
             "Open Library",
-
             existingBook.id
         ]
     );
@@ -708,7 +639,6 @@ const insertAuthor = async (
         return null;
     }
 
-
     const cleanName =
         name.trim();
 
@@ -717,13 +647,9 @@ const insertAuthor = async (
     // FIND BY OPEN LIBRARY KEY
     // =============================================
 
-    if (
-        openLibraryKey
-    ) {
+    if (openLibraryKey) {
 
-        const [
-            rows
-        ] =
+        const [rows] =
             await connection.execute(
                 `
                 SELECT id
@@ -736,9 +662,7 @@ const insertAuthor = async (
                 ]
             );
 
-        if (
-            rows.length > 0
-        ) {
+        if (rows.length > 0) {
             return rows[0].id;
         }
     }
@@ -748,9 +672,7 @@ const insertAuthor = async (
     // FIND BY NAME
     // =============================================
 
-    const [
-        rows
-    ] =
+    const [rows] =
         await connection.execute(
             `
             SELECT id
@@ -764,9 +686,7 @@ const insertAuthor = async (
         );
 
 
-    if (
-        rows.length > 0
-    ) {
+    if (rows.length > 0) {
         return rows[0].id;
     }
 
@@ -775,9 +695,7 @@ const insertAuthor = async (
     // CREATE AUTHOR
     // =============================================
 
-    const [
-        result
-    ] =
+    const [result] =
         await connection.execute(
             `
             INSERT INTO authors
@@ -817,10 +735,7 @@ const insertSubject = async (
 
     const cleanName =
         name
-            .replace(
-                /\s+/g,
-                " "
-            )
+            .replace(/\s+/g, " ")
             .trim();
 
 
@@ -828,9 +743,7 @@ const insertSubject = async (
     // FIND EXISTING
     // =============================================
 
-    const [
-        rows
-    ] =
+    const [rows] =
         await connection.execute(
             `
             SELECT id
@@ -844,9 +757,7 @@ const insertSubject = async (
         );
 
 
-    if (
-        rows.length > 0
-    ) {
+    if (rows.length > 0) {
         return rows[0].id;
     }
 
@@ -855,9 +766,7 @@ const insertSubject = async (
     // CREATE SUBJECT
     // =============================================
 
-    const [
-        result
-    ] =
+    const [result] =
         await connection.execute(
             `
             INSERT INTO subjects
@@ -911,9 +820,7 @@ const updateBookRelationships = async (
             );
 
 
-        if (
-            authorId
-        ) {
+        if (authorId) {
 
             await connection.execute(
                 `
@@ -948,9 +855,7 @@ const updateBookRelationships = async (
             );
 
 
-        if (
-            subjectId
-        ) {
+        if (subjectId) {
 
             await connection.execute(
                 `
@@ -972,44 +877,93 @@ const updateBookRelationships = async (
 
 
 // =====================================================
+// IMPORT ERROR LOG
+// =====================================================
+
+const logImportError = async (
+    connection,
+    jobId,
+    recordIdentifier,
+    error
+) => {
+
+    try {
+
+        await connection.execute(
+            `
+            INSERT INTO import_errors
+            (
+                import_job_id,
+                record_identifier,
+                error_message
+            )
+            VALUES (?, ?, ?)
+            `,
+            [
+                jobId,
+                recordIdentifier || null,
+                error?.message || "Unknown import error"
+            ]
+        );
+
+    } catch (logError) {
+
+        console.error(
+            "IMPORT ERROR LOG FAILED:",
+            logError.message
+        );
+    }
+};
+
+
+// =====================================================
 // IMPORT BOOKS
 // STEP 11 - IMPORT JOB TRACKING
 // =====================================================
-
-const logImportError = async (connection, jobId, recordIdentifier, error) => {
-    try {
-        await connection.execute(
-            `INSERT INTO import_errors (import_job_id, record_identifier, error_message)
-             VALUES (?, ?, ?)`,
-            [jobId, recordIdentifier || null, error?.message || "Unknown import error"]
-        );
-    } catch (logError) {
-        console.error("IMPORT ERROR LOG FAILED:", logError.message);
-    }
-};
 
 export const importBooks = async (
     count,
     adminId = null,
     options = {}
 ) => {
-    const keyword = typeof options.keyword === "string" ? options.keyword.trim() : "";
-    const subject = typeof options.subject === "string" ? options.subject.trim() : "";
 
-    if (!keyword && !subject) {
-        const error = new Error("Keyword or subject is required");
+    const keyword =
+        typeof options.keyword === "string"
+            ? options.keyword.trim()
+            : "";
+
+    const subject =
+        typeof options.subject === "string"
+            ? options.subject.trim()
+            : "";
+
+
+    // =============================================
+    // VALIDATE SEARCH
+    // =============================================
+
+    if (
+        !keyword &&
+        !subject
+    ) {
+
+        const error =
+            new Error(
+                "Keyword or subject is required"
+            );
+
         error.statusCode = 400;
+
         throw error;
     }
+
 
     // =============================================
     // VALIDATE COUNT
     // =============================================
 
     const importCount =
-        validateImportSize(
-            count
-        );
+        validateImportSize(count);
 
 
     // =============================================
@@ -1078,18 +1032,16 @@ export const importBooks = async (
 
 
         // =============================================
-        // FETCH BOOKS
+        // FETCH BOOKS IN SMALL BATCHES
         // =============================================
 
         const books = [];
 
-        const pageSize =
-            100;
+        const pageSize = 100;
 
         const totalPages =
             Math.ceil(
-                importCount /
-                pageSize
+                importCount / pageSize
             );
 
 
@@ -1110,21 +1062,29 @@ export const importBooks = async (
                 );
 
 
-            const query = keyword || (subject ? "" :
-                IMPORT_SEARCH_QUERIES[
-                    (page - 1) % IMPORT_SEARCH_QUERIES.length
-                ]);
+            const query =
+                keyword ||
+                (
+                    subject
+                        ? ""
+                        : IMPORT_SEARCH_QUERIES[
+                            (page - 1) %
+                            IMPORT_SEARCH_QUERIES.length
+                        ]
+                );
 
 
             console.log(
                 `Fetching Open Library page ${page}/${totalPages}`
             );
 
-
             console.log(
                 `Query: ${query}`
             );
 
+            console.log(
+                `Subject: ${subject || "none"}`
+            );
 
             console.log(
                 `Limit: ${limit}`
@@ -1142,9 +1102,7 @@ export const importBooks = async (
 
 
             const docs =
-                Array.isArray(
-                    result?.docs
-                )
+                Array.isArray(result?.docs)
                     ? result.docs
                     : [];
 
@@ -1183,7 +1141,6 @@ export const importBooks = async (
             )
         ) {
 
-            // Always count processed
             summary.processed++;
 
 
@@ -1199,11 +1156,14 @@ export const importBooks = async (
                     );
 
 
-                if (
-                    !normalizedBook
-                ) {
+                if (!normalizedBook) {
 
                     summary.skipped++;
+
+                    await updateImportJob(
+                        jobId,
+                        summary
+                    );
 
                     continue;
                 }
@@ -1219,9 +1179,7 @@ export const importBooks = async (
                     );
 
 
-                if (
-                    !validation.valid
-                ) {
+                if (!validation.valid) {
 
                     summary.skipped++;
 
@@ -1236,12 +1194,23 @@ export const importBooks = async (
                         validation.errors
                     );
 
+
                     await logImportError(
                         connection,
                         jobId,
-                        normalizedBook.openLibraryKey || normalizedBook.title,
-                        new Error(validation.errors.join("; "))
+                        normalizedBook.openLibraryKey ||
+                        normalizedBook.title,
+                        new Error(
+                            validation.errors.join("; ")
+                        )
                     );
+
+
+                    await updateImportJob(
+                        jobId,
+                        summary
+                    );
+
 
                     continue;
                 }
@@ -1289,8 +1258,7 @@ export const importBooks = async (
                 // =============================================
 
                 if (
-                    result.action ===
-                    "inserted"
+                    result.action === "inserted"
                 ) {
 
                     summary.inserted++;
@@ -1300,9 +1268,7 @@ export const importBooks = async (
                     summary.updated++;
 
 
-                    if (
-                        existingBook
-                    ) {
+                    if (existingBook) {
 
                         summary.duplicates++;
                     }
@@ -1328,14 +1294,17 @@ export const importBooks = async (
 
                 summary.failed++;
 
+
                 await logImportError(
                     connection,
                     jobId,
-                    rawBook?.key || rawBook?.title || null,
+                    rawBook?.key ||
+                    rawBook?.title ||
+                    null,
                     error
                 );
 
-                // Update failed progress
+
                 await updateImportJob(
                     jobId,
                     summary
@@ -1352,38 +1321,100 @@ export const importBooks = async (
 
 
         // =============================================
-        // COMPLETE IMPORT JOB
+        // FINAL IMPORT STATUS
         // =============================================
 
-        await completeImportJob(
-            jobId,
-            summary
-        );
+        /*
+         * CASE 1:
+         * No records were processed.
+         * This means the import failed completely.
+         */
+
+        if (
+            summary.processed === 0
+        ) {
+
+            await failImportJob(
+                jobId,
+                new Error(
+                    "No records were successfully processed"
+                )
+            );
+
+
+        /*
+         * CASE 2:
+         * Every processed record failed.
+         */
+
+        } else if (
+            summary.failed === summary.processed
+        ) {
+
+            await failImportJob(
+                jobId,
+                new Error(
+                    "All processed records failed"
+                )
+            );
+
+
+        /*
+         * CASE 3:
+         * Some records failed but some succeeded/skipped.
+         */
+
+        } else if (
+            summary.failed > 0
+        ) {
+
+            await updateImportJob(
+                jobId,
+                {
+                    ...summary,
+                    status: "partially_completed"
+                }
+            );
+
+
+        /*
+         * CASE 4:
+         * No failures.
+         * Import completed successfully.
+         */
+
+        } else {
+
+            await completeImportJob(
+                jobId,
+                summary
+            );
+        }
 
 
         console.log(
             "======================================"
         );
 
-
         console.log(
             "BOOK IMPORT COMPLETED"
         );
-
 
         console.log(
             "IMPORT JOB:",
             jobId
         );
 
-
         console.log(
-            "======================================"
+            "FINAL IMPORT STATUS:"
         );
-
 
         console.log(
             summary
+        );
+
+        console.log(
+            "======================================"
         );
 
 
@@ -1498,17 +1529,13 @@ export const mapOpenLibraryBook = (doc) => {
 
 
     const publishers =
-        Array.isArray(
-            doc.publisher
-        )
+        Array.isArray(doc.publisher)
             ? doc.publisher
             : [];
 
 
     const subjects =
-        Array.isArray(
-            doc.subject
-        )
+        Array.isArray(doc.subject)
             ? doc.subject
             : [];
 
@@ -1534,9 +1561,7 @@ export const mapOpenLibraryBook = (doc) => {
                 : null,
 
         publishDate:
-            Array.isArray(
-                doc.publish_date
-            )
+            Array.isArray(doc.publish_date)
                 ? doc.publish_date[0]
                 : doc.publish_date || null,
 
@@ -1544,9 +1569,7 @@ export const mapOpenLibraryBook = (doc) => {
             doc.first_publish_year || null,
 
         language:
-            Array.isArray(
-                doc.language
-            )
+            Array.isArray(doc.language)
                 ? doc.language[0]
                 : doc.language || null,
 
@@ -1569,20 +1592,15 @@ export const mapOpenLibraryBook = (doc) => {
             doc.number_of_pages_median || null,
 
         authors:
-            Array.isArray(
-                doc.author_name
-            )
+            Array.isArray(doc.author_name)
                 ? doc.author_name
                 : [],
 
         authorKeys:
-            Array.isArray(
-                doc.author_key
-            )
+            Array.isArray(doc.author_key)
                 ? doc.author_key
                 : [],
 
         subjects
-
     };
 };

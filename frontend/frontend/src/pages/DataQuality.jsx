@@ -1,441 +1,394 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import "./dataquality.css";
+import "./DataQuality.css";
 
 function DataQuality() {
-  const [quality, setQuality] = useState({
-    totalBooks: 0,
-    averageQualityScore: 0,
-    highQualityBooks: 0,
-    mediumQualityBooks: 0,
-    lowQualityBooks: 0,
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    missingISBN10: 0,
-    missingISBN13: 0,
-    missingPublisher: 0,
-    missingLanguage: 0,
-    missingPageCount: 0,
-    missingCover: 0,
-    missingPublishYear: 0,
-  });
+    const fetchDashboard = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+            const response = await api.get("/books/data-quality");
 
-  useEffect(() => {
-    fetchDataQuality();
-  }, []);
+            if (response.data?.success) {
+                setData(response.data.data);
+            } else {
+                setError("Failed to load data quality dashboard");
+            }
+        } catch (err) {
+            console.error("DATA QUALITY ERROR:", err);
 
-  const fetchDataQuality = async () => {
-    try {
-      setLoading(true);
-      setError("");
+            setError(
+                err.response?.data?.message ||
+                "Failed to load data quality dashboard"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
-      const response = await api.get("/data-quality");
+    useEffect(() => {
+        fetchDashboard();
+    }, []);
 
-      console.log("DATA QUALITY RESPONSE:", response.data);
+    const markAsReviewed = async (bookId) => {
+        try {
+            await api.patch(`/books/${bookId}/review`);
 
-      const data = response.data?.data || {};
+            await fetchDashboard();
 
-      const summary = data.summary || {};
-      const missingData = data.missingData || {};
+            alert("Book marked as reviewed successfully");
+        } catch (err) {
+            console.error("MARK REVIEWED ERROR:", err);
 
-      setQuality({
-        totalBooks: Number(summary.totalBooks || 0),
+            alert(
+                err.response?.data?.message ||
+                "Failed to mark book as reviewed"
+            );
+        }
+    };
 
-        averageQualityScore: Number(
-          summary.averageQualityScore || 0
-        ),
-
-        highQualityBooks: Number(
-          summary.highQualityBooks || 0
-        ),
-
-        mediumQualityBooks: Number(
-          summary.mediumQualityBooks || 0
-        ),
-
-        lowQualityBooks: Number(
-          summary.lowQualityBooks || 0
-        ),
-
-        missingISBN10: Number(
-          missingData.isbn10 || 0
-        ),
-
-        missingISBN13: Number(
-          missingData.isbn13 || 0
-        ),
-
-        missingPublisher: Number(
-          missingData.publisher || 0
-        ),
-
-        missingLanguage: Number(
-          missingData.language || 0
-        ),
-
-        missingPageCount: Number(
-          missingData.pageCount || 0
-        ),
-
-        missingCover: Number(
-          missingData.cover || 0
-        ),
-
-        missingPublishYear: Number(
-          missingData.publishYear || 0
-        ),
-      });
-    } catch (err) {
-      console.error("DATA QUALITY ERROR:", err);
-
-      setError(
-        err.response?.data?.message ||
-          "Failed to load data quality information."
-      );
-    } finally {
-      setLoading(false);
+    if (loading) {
+        return (
+            <div className="data-quality-page">
+                <div className="loading">
+                    Loading data quality dashboard...
+                </div>
+            </div>
+        );
     }
-  };
 
-  if (loading) {
+    if (error) {
+        return (
+            <div className="data-quality-page">
+                <div className="error-message">
+                    {error}
+                </div>
+
+                <button
+                    onClick={fetchDashboard}
+                    className="retry-btn"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    if (!data) {
+        return null;
+    }
+
+    const {
+        summary = {},
+        missingData = {},
+        duplicateISBN = {},
+        review = {}
+    } = data;
+
     return (
-      <div className="data-quality-page">
-        <div className="data-quality-loading">
-          Loading data quality...
+        <div className="data-quality-page">
+
+            {/* HEADER */}
+
+            <div className="page-header">
+                <div>
+                    <h1>Data Quality Dashboard</h1>
+
+                    <p>
+                        Monitor book data quality and review incomplete records.
+                    </p>
+                </div>
+
+                <button
+                    onClick={fetchDashboard}
+                    className="refresh-btn"
+                >
+                    Refresh
+                </button>
+            </div>
+
+
+            {/* SUMMARY */}
+
+            <section className="dashboard-section">
+
+                <h2>Quality Summary</h2>
+
+                <div className="quality-cards">
+
+                    <div className="quality-card">
+                        <span>Total Books</span>
+                        <strong>
+                            {summary.totalBooks ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="quality-card">
+                        <span>Average Quality</span>
+                        <strong>
+                            {summary.averageQualityScore ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="quality-card high">
+                        <span>High Quality</span>
+                        <strong>
+                            {summary.highQualityBooks ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="quality-card medium">
+                        <span>Medium Quality</span>
+                        <strong>
+                            {summary.mediumQualityBooks ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="quality-card low">
+                        <span>Low Quality</span>
+                        <strong>
+                            {summary.lowQualityBooks ?? 0}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            {/* MISSING DATA */}
+
+            <section className="dashboard-section">
+
+                <h2>Missing Data</h2>
+
+                <div className="missing-grid">
+
+                    <div className="missing-card">
+                        <span>Missing Authors</span>
+                        <strong>
+                            {missingData.author ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Publish Year</span>
+                        <strong>
+                            {missingData.publishYear ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Subjects</span>
+                        <strong>
+                            {missingData.subjects ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing ISBN</span>
+                        <strong>
+                            {missingData.isbn ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Publisher</span>
+                        <strong>
+                            {missingData.publisher ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Language</span>
+                        <strong>
+                            {missingData.language ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Page Count</span>
+                        <strong>
+                            {missingData.pageCount ?? 0}
+                        </strong>
+                    </div>
+
+                    <div className="missing-card">
+                        <span>Missing Cover</span>
+                        <strong>
+                            {missingData.cover ?? 0}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            {/* DUPLICATE ISBN */}
+
+            <section className="dashboard-section">
+
+                <h2>Possible Duplicate ISBN Records</h2>
+
+                <div className="duplicate-summary">
+
+                    <div>
+                        <span>ISBN-10 Groups</span>
+                        <strong>
+                            {duplicateISBN.isbn10?.length ?? 0}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>ISBN-13 Groups</span>
+                        <strong>
+                            {duplicateISBN.isbn13?.length ?? 0}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Total Groups</span>
+                        <strong>
+                            {duplicateISBN.totalGroups ?? 0}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                {/* ISBN 10 */}
+
+                {duplicateISBN.isbn10?.length > 0 && (
+                    <div className="duplicate-table">
+
+                        <h3>Duplicate ISBN-10</h3>
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>ISBN-10</th>
+                                    <th>Records</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {duplicateISBN.isbn10.map(
+                                    (item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {item.isbn10}
+                                            </td>
+
+                                            <td>
+                                                {item.count}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                )}
+
+
+                {/* ISBN 13 */}
+
+                {duplicateISBN.isbn13?.length > 0 && (
+                    <div className="duplicate-table">
+
+                        <h3>Duplicate ISBN-13</h3>
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>ISBN-13</th>
+                                    <th>Records</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {duplicateISBN.isbn13.map(
+                                    (item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {item.isbn13}
+                                            </td>
+
+                                            <td>
+                                                {item.count}
+                                            </td>
+                                        </tr>
+                                    )
+                                )}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                )}
+
+                {duplicateISBN.totalGroups === 0 && (
+                    <div className="no-duplicates">
+                        No possible duplicate ISBN records found.
+                    </div>
+                )}
+
+            </section>
+
+
+            {/* REVIEW */}
+
+            <section className="dashboard-section">
+
+                <h2>Review Status</h2>
+
+                <div className="review-cards">
+
+                    <div>
+                        <span>Total Books</span>
+                        <strong>
+                            {review.totalBooks ?? 0}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Reviewed</span>
+                        <strong>
+                            {review.reviewedBooks ?? 0}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Pending Review</span>
+                        <strong>
+                            {review.pendingReviewBooks ?? 0}
+                        </strong>
+                    </div>
+
+                </div>
+
+                <p className="review-note">
+                    Books can be marked as reviewed from the Book Details page.
+                </p>
+
+            </section>
+
         </div>
-      </div>
     );
-  }
-
-  return (
-    <div className="data-quality-page">
-
-      {/* HEADER */}
-      <div className="data-quality-header">
-        <div>
-          <h1>Data Quality</h1>
-
-          <p>
-            Monitor and validate the quality of your book
-            catalog data.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="refresh-button"
-          onClick={fetchDataQuality}
-        >
-          Refresh
-        </button>
-      </div>
-
-      {/* ERROR */}
-      {error && (
-        <div className="data-quality-error">
-          {error}
-        </div>
-      )}
-
-      {/* OVERALL QUALITY */}
-      <section className="quality-overall-card">
-
-        <div className="quality-overall-content">
-
-          <h2>Overall Data Quality</h2>
-
-          <p>
-            Average quality score across{" "}
-            <strong>{quality.totalBooks}</strong>{" "}
-            books.
-          </p>
-
-          <p>
-            High quality:{" "}
-            <strong>{quality.highQualityBooks}</strong>
-            {" | "}
-            Medium:{" "}
-            <strong>{quality.mediumQualityBooks}</strong>
-            {" | "}
-            Low:{" "}
-            <strong>{quality.lowQualityBooks}</strong>
-          </p>
-
-        </div>
-
-        <div className="quality-score">
-          <strong>
-            {quality.averageQualityScore.toFixed(1)}
-          </strong>
-        </div>
-
-      </section>
-
-      {/* QUALITY STATISTICS */}
-      <section className="data-quality-stats">
-
-        <div className="quality-stat-card">
-
-          <div className="quality-stat-icon books">
-            📚
-          </div>
-
-          <div>
-            <span className="quality-stat-label">
-              Total Books
-            </span>
-
-            <strong className="quality-stat-value">
-              {quality.totalBooks}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <div className="quality-stat-card">
-
-          <div className="quality-stat-icon valid">
-            ✓
-          </div>
-
-          <div>
-            <span className="quality-stat-label">
-              High Quality
-            </span>
-
-            <strong className="quality-stat-value">
-              {quality.highQualityBooks}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <div className="quality-stat-card">
-
-          <div className="quality-stat-icon invalid">
-            !
-          </div>
-
-          <div>
-            <span className="quality-stat-label">
-              Low Quality
-            </span>
-
-            <strong className="quality-stat-value">
-              {quality.lowQualityBooks}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <div className="quality-stat-card">
-
-          <div className="quality-stat-icon duplicate">
-            ⚠
-          </div>
-
-          <div>
-            <span className="quality-stat-label">
-              Medium Quality
-            </span>
-
-            <strong className="quality-stat-value">
-              {quality.mediumQualityBooks}
-            </strong>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* DATA ISSUES */}
-      <section className="data-issues-card">
-
-        <div className="data-issues-header">
-
-          <h2>Data Issues</h2>
-
-          <p>
-            Missing data detected in your book catalog.
-          </p>
-
-        </div>
-
-
-        <div className="issue-grid">
-
-          {/* ISBN 10 */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              🔢
-            </div>
-
-            <div>
-              <h3>Missing ISBN-10</h3>
-
-              <strong>
-                {quality.missingISBN10}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* ISBN 13 */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              🔢
-            </div>
-
-            <div>
-              <h3>Missing ISBN-13</h3>
-
-              <strong>
-                {quality.missingISBN13}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* Publisher */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              🏢
-            </div>
-
-            <div>
-              <h3>Missing Publisher</h3>
-
-              <strong>
-                {quality.missingPublisher}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* Language */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              🌐
-            </div>
-
-            <div>
-              <h3>Missing Language</h3>
-
-              <strong>
-                {quality.missingLanguage}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* Page Count */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              📄
-            </div>
-
-            <div>
-              <h3>Missing Page Count</h3>
-
-              <strong>
-                {quality.missingPageCount}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* Cover */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              🖼️
-            </div>
-
-            <div>
-              <h3>Missing Cover</h3>
-
-              <strong>
-                {quality.missingCover}
-              </strong>
-            </div>
-
-          </div>
-
-
-          {/* Publish Year */}
-          <div className="issue-card">
-
-            <div className="issue-icon">
-              📅
-            </div>
-
-            <div>
-              <h3>Missing Publish Year</h3>
-
-              <strong>
-                {quality.missingPublishYear}
-              </strong>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* QUALITY ISSUES */}
-      <section className="quality-issues-card">
-
-        <div className="quality-issues-header">
-
-          <h2>Quality Issues</h2>
-
-          <p>
-            Detailed data quality problems.
-          </p>
-
-        </div>
-
-
-        <div className="no-quality-issues">
-
-          <div className="no-quality-icon">
-            !
-          </div>
-
-          <h3>
-            Data quality issues detected
-          </h3>
-
-          <p>
-            Your catalog contains books with missing
-            information. Review the Data Issues section
-            above.
-          </p>
-
-        </div>
-
-      </section>
-
-    </div>
-  );
 }
 
 export default DataQuality;

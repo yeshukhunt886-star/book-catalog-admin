@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -32,7 +31,14 @@ function Books() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(null);
+
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // =====================================================
+  // LOAD BOOKS
+  // =====================================================
 
   const fetchBooks = async () => {
     try {
@@ -106,19 +112,33 @@ function Books() {
     }
   };
 
+  // =====================================================
+  // INITIAL LOAD
+  // =====================================================
+
   useEffect(() => {
     fetchBooks();
   }, [page, sort, order]);
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
 
   const handleSearch = (e) => {
     e.preventDefault();
 
     setPage(1);
+    setSuccess("");
+    setError("");
 
     setTimeout(() => {
       fetchBooks();
     }, 0);
   };
+
+  // =====================================================
+  // CLEAR FILTERS
+  // =====================================================
 
   const handleClear = () => {
     setSearch("");
@@ -133,10 +153,88 @@ function Books() {
     setOrder("desc");
     setPage(1);
 
+    setSuccess("");
+    setError("");
+
     setTimeout(() => {
       fetchBooks();
     }, 0);
   };
+
+  // =====================================================
+  // CREATE BOOK
+  // =====================================================
+
+  const handleCreate = () => {
+    navigate("/books/create");
+  };
+
+  // =====================================================
+  // EDIT BOOK
+  // =====================================================
+
+  const handleEdit = (id) => {
+    setError("");
+    setSuccess("");
+
+    navigate(`/books/${id}/edit`);
+  };
+
+  // =====================================================
+  // DELETE BOOK
+  // =====================================================
+
+  const handleDelete = async (id, title) => {
+    const bookTitle = title || "this book";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${bookTitle}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeleteLoading(id);
+      setError("");
+      setSuccess("");
+
+      const response = await api.delete(
+        `/books/${id}`
+      );
+
+      console.log(
+        "DELETE BOOK RESPONSE:",
+        response.data
+      );
+
+      setSuccess(
+        response.data?.message ||
+          "Book deleted successfully"
+      );
+
+      // Reload books after delete
+      await fetchBooks();
+
+    } catch (err) {
+      console.error(
+        "DELETE BOOK ERROR:",
+        err
+      );
+
+      setError(
+        err.response?.data?.message ||
+          "Failed to delete book"
+      );
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
+
+  // =====================================================
+  // PAGINATION
+  // =====================================================
 
   const handlePrevious = () => {
     if (pagination.hasPreviousPage) {
@@ -150,23 +248,23 @@ function Books() {
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/books/${id}/edit`);
-  };
-
-  const handleCreate = () => {
-    navigate("/books/create");
-  };
-  
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <div className="books-layout">
+
       <Sidebar />
 
       <main className="books-main">
 
-        {/* HEADER */}
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
+
         <div className="books-header">
+
           <div>
             <h1>Books</h1>
 
@@ -176,6 +274,7 @@ function Books() {
           </div>
 
           <div className="books-header-actions">
+
             <button
               className="create-button"
               onClick={handleCreate}
@@ -186,20 +285,56 @@ function Books() {
             <button
               className="refresh-button"
               onClick={fetchBooks}
+              disabled={loading}
             >
-              Refresh
+              {loading
+                ? "Refreshing..."
+                : "Refresh"}
             </button>
+
           </div>
+
         </div>
 
-        {/* SEARCH AND FILTERS */}
+
+        {/* =====================================================
+            SUCCESS MESSAGE
+        ===================================================== */}
+
+        {success && (
+          <div className="books-success">
+            {success}
+          </div>
+        )}
+
+
+        {/* =====================================================
+            ERROR MESSAGE
+        ===================================================== */}
+
+        {error && (
+          <div className="books-error">
+            {error}
+          </div>
+        )}
+
+
+        {/* =====================================================
+            SEARCH AND FILTERS
+        ===================================================== */}
+
         <form
           className="books-filter-card"
           onSubmit={handleSearch}
         >
 
+          {/* SEARCH */}
+
           <div className="filter-group search-group">
-            <label>Search</label>
+
+            <label>
+              Search
+            </label>
 
             <input
               type="text"
@@ -209,10 +344,17 @@ function Books() {
                 setSearch(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* SUBJECT */}
+
           <div className="filter-group">
-            <label>Subject</label>
+
+            <label>
+              Subject
+            </label>
 
             <input
               type="text"
@@ -222,10 +364,17 @@ function Books() {
                 setSubject(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* AUTHOR */}
+
           <div className="filter-group">
-            <label>Author</label>
+
+            <label>
+              Author
+            </label>
 
             <input
               type="text"
@@ -235,10 +384,17 @@ function Books() {
                 setAuthor(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* LANGUAGE */}
+
           <div className="filter-group">
-            <label>Language</label>
+
+            <label>
+              Language
+            </label>
 
             <input
               type="text"
@@ -248,10 +404,17 @@ function Books() {
                 setLanguage(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* MIN YEAR */}
+
           <div className="filter-group">
-            <label>Min Year</label>
+
+            <label>
+              Min Year
+            </label>
 
             <input
               type="number"
@@ -261,10 +424,17 @@ function Books() {
                 setMinYear(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* MAX YEAR */}
+
           <div className="filter-group">
-            <label>Max Year</label>
+
+            <label>
+              Max Year
+            </label>
 
             <input
               type="number"
@@ -274,10 +444,17 @@ function Books() {
                 setMaxYear(e.target.value)
               }
             />
+
           </div>
 
+
+          {/* QUALITY */}
+
           <div className="filter-group">
-            <label>Quality</label>
+
+            <label>
+              Quality
+            </label>
 
             <select
               value={quality}
@@ -285,6 +462,7 @@ function Books() {
                 setQuality(e.target.value)
               }
             >
+
               <option value="">
                 All Quality
               </option>
@@ -300,11 +478,19 @@ function Books() {
               <option value="low">
                 Low
               </option>
+
             </select>
+
           </div>
 
+
+          {/* SORT */}
+
           <div className="filter-group">
-            <label>Sort By</label>
+
+            <label>
+              Sort By
+            </label>
 
             <select
               value={sort}
@@ -313,6 +499,7 @@ function Books() {
                 setPage(1);
               }}
             >
+
               <option value="recently_imported">
                 Recently Imported
               </option>
@@ -328,11 +515,19 @@ function Books() {
               <option value="publish_year">
                 Publish Year
               </option>
+
             </select>
+
           </div>
 
+
+          {/* ORDER */}
+
           <div className="filter-group">
-            <label>Order</label>
+
+            <label>
+              Order
+            </label>
 
             <select
               value={order}
@@ -341,6 +536,7 @@ function Books() {
                 setPage(1);
               }}
             >
+
               <option value="desc">
                 Descending
               </option>
@@ -348,8 +544,13 @@ function Books() {
               <option value="asc">
                 Ascending
               </option>
+
             </select>
+
           </div>
+
+
+          {/* ACTIONS */}
 
           <div className="filter-actions">
 
@@ -369,20 +570,20 @@ function Books() {
             </button>
 
           </div>
+
         </form>
 
-        {/* ERROR */}
-        {error && (
-          <div className="books-error">
-            {error}
-          </div>
-        )}
 
-        {/* BOOK TABLE */}
+        {/* =====================================================
+            BOOK TABLE
+        ===================================================== */}
+
         <div className="books-card">
 
           <div className="books-card-header">
+
             <div>
+
               <strong>
                 Books
               </strong>
@@ -390,58 +591,101 @@ function Books() {
               <span>
                 {pagination.total || 0} total
               </span>
+
             </div>
+
           </div>
+
 
           <div className="books-table-wrapper">
 
             <table className="books-table">
 
               <thead>
+
                 <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>ISBN</th>
-                  <th>Publisher</th>
-                  <th>Year</th>
-                  <th>Language</th>
-                  <th>Action</th>
+
+                  <th>
+                    ID
+                  </th>
+
+                  <th>
+                    Title
+                  </th>
+
+                  <th>
+                    ISBN
+                  </th>
+
+                  <th>
+                    Publisher
+                  </th>
+
+                  <th>
+                    Year
+                  </th>
+
+                  <th>
+                    Language
+                  </th>
+
+                  <th>
+                    Action
+                  </th>
+
                 </tr>
+
               </thead>
 
+
               <tbody>
+
+                {/* LOADING */}
 
                 {loading ? (
 
                   <tr>
+
                     <td
                       colSpan="7"
                       className="table-message"
                     >
                       Loading books...
                     </td>
+
                   </tr>
 
                 ) : books.length === 0 ? (
 
+                  /* EMPTY */
+
                   <tr>
+
                     <td
                       colSpan="7"
                       className="table-message"
                     >
                       No books found.
                     </td>
+
                   </tr>
 
                 ) : (
+
+                  /* BOOKS */
 
                   books.map((book) => (
 
                     <tr key={book.id}>
 
+                      {/* ID */}
+
                       <td>
                         {book.id}
                       </td>
+
+
+                      {/* TITLE */}
 
                       <td className="book-title">
 
@@ -457,35 +701,81 @@ function Books() {
 
                       </td>
 
+
+                      {/* ISBN */}
+
                       <td>
                         {book.isbn13 ||
                           book.isbn10 ||
                           "-"}
                       </td>
 
+
+                      {/* PUBLISHER */}
+
                       <td>
                         {book.publisher || "-"}
                       </td>
 
+
+                      {/* YEAR */}
+
                       <td>
                         {book.first_publish_year ||
+                          book.publishYear ||
                           "-"}
                       </td>
+
+
+                      {/* LANGUAGE */}
 
                       <td>
                         {book.language || "-"}
                       </td>
 
+
+                      {/* ACTION */}
+
                       <td>
 
-                        <button
-                          className="edit-button"
-                          onClick={() =>
-                            handleEdit(book.id)
-                          }
-                        >
-                          Edit
-                        </button>
+                        <div className="book-action-buttons">
+
+                          {/* EDIT */}
+
+                          <button
+                            type="button"
+                            className="edit-button"
+                            onClick={() =>
+                              handleEdit(book.id)
+                            }
+                          >
+                            Edit
+                          </button>
+
+
+                          {/* DELETE */}
+
+                          <button
+                            type="button"
+                            className="delete-button"
+                            onClick={() =>
+                              handleDelete(
+                                book.id,
+                                book.title
+                              )
+                            }
+                            disabled={
+                              deleteLoading ===
+                              book.id
+                            }
+                          >
+                            {deleteLoading ===
+                            book.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+
+                        </div>
 
                       </td>
 
@@ -501,7 +791,11 @@ function Books() {
 
           </div>
 
-          {/* PAGINATION */}
+
+          {/* =====================================================
+              PAGINATION
+          ===================================================== */}
+
           <div className="pagination">
 
             <button
@@ -514,12 +808,17 @@ function Books() {
               Previous
             </button>
 
+
             <span>
-              Page {pagination.page || page}
+
+              Page{" "}
+              {pagination.page || page}
               {" "}
               of{" "}
               {pagination.totalPages || 0}
+
             </span>
+
 
             <button
               onClick={handleNext}
@@ -536,6 +835,7 @@ function Books() {
         </div>
 
       </main>
+
     </div>
   );
 }

@@ -10,20 +10,43 @@ function ImportJobs() {
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
 
-  const fetchImportJobs = async () => {
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 1,
+  });
+
+  const fetchImportJobs = async (currentPage = page) => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/import/jobs");
+      const response = await api.get("/import/jobs", {
+        params: {
+          page: currentPage,
+          limit,
+        },
+      });
 
       console.log("IMPORT JOBS RESPONSE:", response.data);
 
       if (response.data?.success) {
         setJobs(response.data.data || []);
+
+        setPagination(
+          response.data.pagination || {
+            page: currentPage,
+            limit,
+            total: response.data.data?.length || 0,
+            totalPages: 1,
+          }
+        );
       } else {
         setJobs([]);
-        setError(response.data?.message || "Failed to load import jobs");
+        setError(
+          response.data?.message || "Failed to load import jobs"
+        );
       }
     } catch (err) {
       console.error("IMPORT JOBS ERROR:", err);
@@ -41,58 +64,173 @@ function ImportJobs() {
   };
 
   useEffect(() => {
-    fetchImportJobs();
-  }, []);
+    fetchImportJobs(page);
+  }, [page]);
 
-  const totalPages = Math.ceil(jobs.length / limit);
+  /*
+  =====================================================
+  STATUS COUNTS
+  =====================================================
+  */
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
+  const totalJobs = pagination.total;
 
-  const currentJobs = jobs.slice(startIndex, endIndex);
+  const completedJobs = jobs.filter(
+    (job) => job.status === "completed"
+  ).length;
+
+  const failedJobs = jobs.filter(
+    (job) => job.status === "failed"
+  ).length;
+
+  const runningJobs = jobs.filter(
+    (job) => job.status === "running"
+  ).length;
+
+  const partiallyCompletedJobs = jobs.filter(
+    (job) => job.status === "partially_completed"
+  ).length;
+
+  /*
+  =====================================================
+  FORMAT DATE
+  =====================================================
+  */
 
   const formatDate = (date) => {
     if (!date) return "-";
 
-    return new Date(date).toLocaleString();
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
+
+    return parsedDate.toLocaleString();
   };
 
+  /*
+  =====================================================
+  STATUS CLASS
+  =====================================================
+  */
+
   const getStatusClass = (status) => {
-    if (status === "completed") {
-      return "status-completed";
-    }
+    switch (status) {
+      case "completed":
+        return "status-completed";
 
-    if (status === "failed") {
-      return "status-failed";
-    }
+      case "failed":
+        return "status-failed";
 
-    if (status === "running") {
-      return "status-running";
-    }
+      case "running":
+        return "status-running";
 
-    if (status === "cancelled") {
-      return "status-cancelled";
-    }
+      case "cancelled":
+        return "status-cancelled";
 
-    return "status-default";
+      case "partially_completed":
+        return "status-partially";
+
+      default:
+        return "status-default";
+    }
+  };
+
+  /*
+  =====================================================
+  STATUS LABEL
+  =====================================================
+  */
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "completed":
+        return "Completed";
+
+      case "failed":
+        return "Failed";
+
+      case "running":
+        return "Running";
+
+      case "cancelled":
+        return "Cancelled";
+
+      case "partially_completed":
+        return "Partially Completed";
+
+      default:
+        return "Unknown";
+    }
+  };
+
+  /*
+  =====================================================
+  REFRESH
+  =====================================================
+  */
+
+  const handleRefresh = () => {
+    fetchImportJobs(page);
+  };
+
+  /*
+  =====================================================
+  PAGINATION
+  =====================================================
+  */
+
+  const totalPages = Math.max(
+    Number(pagination.totalPages) || 1,
+    1
+  );
+
+  const currentPage = Number(pagination.page) || page;
+
+  const goToPreviousPage = () => {
+    setPage((previousPage) =>
+      Math.max(previousPage - 1, 1)
+    );
+  };
+
+  const goToNextPage = () => {
+    setPage((previousPage) =>
+      Math.min(previousPage + 1, totalPages)
+    );
   };
 
   return (
     <div className="import-jobs-page">
+
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
       <div className="import-jobs-header">
+
         <div>
           <h1>Import Jobs</h1>
-          <p>View and monitor book import jobs</p>
+
+          <p>
+            View and monitor book import jobs
+          </p>
         </div>
 
         <button
           className="refresh-button"
-          onClick={fetchImportJobs}
+          onClick={handleRefresh}
           disabled={loading}
         >
           ↻ Refresh
         </button>
+
       </div>
+
+
+      {/* =====================================================
+          ERROR
+      ===================================================== */}
 
       {error && (
         <div className="import-jobs-error">
@@ -100,141 +238,302 @@ function ImportJobs() {
         </div>
       )}
 
+
+      {/* =====================================================
+          LOADING
+      ===================================================== */}
+
       {loading ? (
         <div className="import-jobs-loading">
           Loading import jobs...
         </div>
       ) : (
         <>
+
+          {/* =====================================================
+              SUMMARY
+          ===================================================== */}
+
           <div className="jobs-summary">
+
             <div className="summary-card">
               <span>Total Jobs</span>
-              <strong>{jobs.length}</strong>
+              <strong>{totalJobs}</strong>
             </div>
+
 
             <div className="summary-card">
               <span>Completed</span>
+
               <strong>
-                {jobs.filter((job) => job.status === "completed").length}
+                {completedJobs}
               </strong>
             </div>
+
 
             <div className="summary-card">
               <span>Failed</span>
+
               <strong>
-                {jobs.filter((job) => job.status === "failed").length}
+                {failedJobs}
               </strong>
             </div>
+
 
             <div className="summary-card">
               <span>Running</span>
+
               <strong>
-                {jobs.filter((job) => job.status === "running").length}
+                {runningJobs}
               </strong>
             </div>
-          </div>
 
-          <div className="import-jobs-card">
-            <div className="card-header">
-              <div>
-                <h2>Import History</h2>
-                <p>Recent book import activity</p>
-              </div>
+
+            <div className="summary-card">
+              <span>Partial</span>
+
+              <strong>
+                {partiallyCompletedJobs}
+              </strong>
             </div>
 
-            {currentJobs.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📥</div>
-                <h3>No Import Jobs</h3>
-                <p>No import jobs found.</p>
+          </div>
+
+
+          {/* =====================================================
+              IMPORT HISTORY
+          ===================================================== */}
+
+          <div className="import-jobs-card">
+
+            <div className="card-header">
+
+              <div>
+                <h2>Import History</h2>
+
+                <p>
+                  Recent book import activity
+                </p>
               </div>
+
+            </div>
+
+
+            {/* =====================================================
+                EMPTY STATE
+            ===================================================== */}
+
+            {jobs.length === 0 ? (
+
+              <div className="empty-state">
+
+                <div className="empty-icon">
+                  📥
+                </div>
+
+                <h3>
+                  No Import Jobs
+                </h3>
+
+                <p>
+                  No import jobs found.
+                </p>
+
+              </div>
+
             ) : (
+
+              /* =====================================================
+                 TABLE
+              ===================================================== */
+
               <div className="table-wrapper">
+
                 <table className="import-jobs-table">
+
                   <thead>
+
                     <tr>
+
                       <th>ID</th>
+
+                      <th>Admin ID</th>
+
                       <th>Requested</th>
+
                       <th>Processed</th>
+
                       <th>Imported</th>
+
                       <th>Updated</th>
+
                       <th>Skipped</th>
+
                       <th>Failed</th>
+
                       <th>Status</th>
+
                       <th>Started</th>
+
                       <th>Completed</th>
+
                     </tr>
+
                   </thead>
 
+
                   <tbody>
-                    {currentJobs.map((job) => (
+
+                    {jobs.map((job) => (
+
                       <tr key={job.id}>
-                        <td className="job-id">#{job.id}</td>
 
-                        <td>{job.requested_count ?? 0}</td>
+                        {/* ID */}
 
-                        <td>{job.processed_count ?? 0}</td>
+                        <td className="job-id">
+                          #{job.id}
+                        </td>
+
+
+                        {/* ADMIN ID */}
+
+                        <td>
+                          {job.admin_id ?? "-"}
+                        </td>
+
+
+                        {/* REQUESTED */}
+
+                        <td>
+                          {job.requested_count ?? 0}
+                        </td>
+
+
+                        {/* PROCESSED */}
+
+                        <td>
+                          {job.processed_count ?? 0}
+                        </td>
+
+
+                        {/* IMPORTED */}
 
                         <td className="imported-count">
                           {job.imported_count ?? 0}
                         </td>
 
-                        <td>{job.updated_count ?? 0}</td>
 
-                        <td>{job.skipped_count ?? 0}</td>
+                        {/* UPDATED */}
+
+                        <td>
+                          {job.updated_count ?? 0}
+                        </td>
+
+
+                        {/* SKIPPED */}
+
+                        <td>
+                          {job.skipped_count ?? 0}
+                        </td>
+
+
+                        {/* FAILED */}
 
                         <td className="failed-count">
                           {job.failed_count ?? 0}
                         </td>
 
+
+                        {/* STATUS */}
+
                         <td>
+
                           <span
                             className={`status-badge ${getStatusClass(
                               job.status
                             )}`}
                           >
-                            {job.status || "unknown"}
+                            {getStatusLabel(
+                              job.status
+                            )}
                           </span>
+
                         </td>
 
-                        <td>{formatDate(job.started_at)}</td>
 
-                        <td>{formatDate(job.completed_at)}</td>
+                        {/* STARTED */}
+
+                        <td>
+                          {formatDate(
+                            job.started_at
+                          )}
+                        </td>
+
+
+                        {/* COMPLETED */}
+
+                        <td>
+                          {formatDate(
+                            job.completed_at
+                          )}
+                        </td>
+
                       </tr>
+
                     ))}
+
                   </tbody>
+
                 </table>
+
               </div>
+
             )}
 
-            {jobs.length > 0 && (
+
+            {/* =====================================================
+                PAGINATION
+            ===================================================== */}
+
+            {pagination.total > 0 && (
+
               <div className="pagination">
+
                 <button
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={page === 1}
+                  onClick={goToPreviousPage}
+                  disabled={
+                    loading ||
+                    currentPage <= 1
+                  }
                 >
                   Previous
                 </button>
 
+
                 <span>
-                  Page {page} of {Math.max(totalPages, 1)}
+                  Page {currentPage} of {totalPages}
                 </span>
 
+
                 <button
-                  onClick={() =>
-                    setPage((p) =>
-                      Math.min(p + 1, Math.max(totalPages, 1))
-                    )
+                  onClick={goToNextPage}
+                  disabled={
+                    loading ||
+                    currentPage >= totalPages
                   }
-                  disabled={page >= totalPages}
                 >
                   Next
                 </button>
+
               </div>
+
             )}
+
           </div>
+
         </>
       )}
+
     </div>
   );
 }

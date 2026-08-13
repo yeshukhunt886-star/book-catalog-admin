@@ -990,25 +990,22 @@ export const updateBookLocalFields = async (req, res) => {
 // GET /api/data-quality
 export const getDataQualityDashboard = async (req, res) => {
     try {
-        // -------------------------------------------------
-        // TOTAL BOOKS
-        // -------------------------------------------------
 
-        const [totalRows] = await pool.execute(`
-            SELECT COUNT(*) AS total
-            FROM books
-        `);
+        // =====================================================
+        // SUMMARY
+        // =====================================================
 
-        const totalBooks = Number(totalRows[0]?.total || 0);
-
-        // -------------------------------------------------
-        // QUALITY SCORE SUMMARY
-        // -------------------------------------------------
-
-        const [qualityRows] = await pool.execute(`
+        const [summaryRows] = await pool.execute(`
             SELECT
-                COUNT(*) AS total,
-                COALESCE(AVG(data_quality_score), 0) AS average_score,
+                COUNT(*) AS totalBooks,
+
+                ROUND(
+                    COALESCE(
+                        AVG(data_quality_score),
+                        0
+                    ),
+                    2
+                ) AS averageQualityScore,
 
                 SUM(
                     CASE
@@ -1016,7 +1013,7 @@ export const getDataQualityDashboard = async (req, res) => {
                         THEN 1
                         ELSE 0
                     END
-                ) AS high_quality,
+                ) AS highQualityBooks,
 
                 SUM(
                     CASE
@@ -1025,7 +1022,7 @@ export const getDataQualityDashboard = async (req, res) => {
                         THEN 1
                         ELSE 0
                     END
-                ) AS medium_quality,
+                ) AS mediumQualityBooks,
 
                 SUM(
                     CASE
@@ -1034,176 +1031,378 @@ export const getDataQualityDashboard = async (req, res) => {
                         THEN 1
                         ELSE 0
                     END
-                ) AS low_quality
+                ) AS lowQualityBooks
 
             FROM books
         `);
 
-        const quality = qualityRows[0];
 
-        // -------------------------------------------------
-        // MISSING DATA ANALYSIS
-        // -------------------------------------------------
+        // =====================================================
+        // MISSING DATA
+        // =====================================================
 
         const [missingRows] = await pool.execute(`
             SELECT
 
                 SUM(
                     CASE
-                        WHEN isbn10 IS NULL
-                        OR TRIM(isbn10) = ''
+                        WHEN NOT EXISTS (
+                            SELECT 1
+                            FROM book_authors ba
+                            WHERE ba.book_id = b.id
+                        )
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_isbn10,
+                ) AS missingAuthor,
 
                 SUM(
                     CASE
-                        WHEN isbn13 IS NULL
-                        OR TRIM(isbn13) = ''
+                        WHEN b.first_publish_year IS NULL
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_isbn13,
+                ) AS missingPublishYear,
 
                 SUM(
                     CASE
-                        WHEN publisher IS NULL
-                        OR TRIM(publisher) = ''
+                        WHEN b.isbn10 IS NULL
+                        AND b.isbn13 IS NULL
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_publisher,
+                ) AS missingISBN,
 
                 SUM(
                     CASE
-                        WHEN language IS NULL
-                        OR TRIM(language) = ''
-                        OR language = 'und'
+                        WHEN b.publisher IS NULL
+                        OR TRIM(b.publisher) = ''
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_language,
+                ) AS missingPublisher,
 
                 SUM(
                     CASE
-                        WHEN page_count IS NULL
-                        OR page_count <= 0
+                        WHEN b.language IS NULL
+                        OR TRIM(b.language) = ''
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_page_count,
+                ) AS missingLanguage,
 
                 SUM(
                     CASE
-                        WHEN cover_url IS NULL
-                        OR TRIM(cover_url) = ''
+                        WHEN b.page_count IS NULL
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_cover,
+                ) AS missingPageCount,
 
                 SUM(
                     CASE
-                        WHEN first_publish_year IS NULL
-                        OR first_publish_year <= 0
+                        WHEN b.cover_url IS NULL
+                        OR TRIM(b.cover_url) = ''
                         THEN 1
                         ELSE 0
                     END
-                ) AS missing_publish_year
+                ) AS missingCover,
+
+                SUM(
+                    CASE
+                        WHEN NOT EXISTS (
+                            SELECT 1
+                            FROM book_subjects bs
+                            WHERE bs.book_id = b.id
+                        )
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS missingSubjects
+
+            FROM books b
+        `);
+
+
+        // =====================================================
+        // POSSIBLE DUPLICATE ISBN-10
+        // =====================================================
+
+        const [duplicateISBN10] = await pool.execute(`
+            SELECT
+                isbn10,
+                COUNT(*) AS count
+            FROM books
+            WHERE
+                isbn10 IS NOT NULL
+                AND TRIM(isbn10) <> ''
+            GROUP BY isbn10
+            HAVING COUNT(*) > 1
+            ORDER BY count DESC
+        `);
+
+
+        // =====================================================
+        // POSSIBLE DUPLICATE ISBN-13
+        // =====================================================
+
+        const [duplicateISBN13] = await pool.execute(`
+            SELECT
+                isbn13,
+                COUNT(*) AS count
+            FROM books
+            WHERE
+                isbn13 IS NOT NULL
+                AND TRIM(isbn13) <> ''
+            GROUP BY isbn13
+            HAVING COUNT(*) > 1
+            ORDER BY count DESC
+        `);
+
+
+        // =====================================================
+        // REVIEW STATUS
+        // =====================================================
+
+        const [reviewRows] = await pool.execute(`
+            SELECT
+
+                COUNT(*) AS totalBooks,
+
+                SUM(
+                    CASE
+                        WHEN reviewed = 1
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS reviewedBooks,
+
+                SUM(
+                    CASE
+                        WHEN reviewed = 0
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS pendingReviewBooks
 
             FROM books
         `);
 
-        const missing = missingRows[0];
 
-        // -------------------------------------------------
-        // DATA QUALITY PERCENTAGE
-        // -------------------------------------------------
-
-        const averageScore =
-            Number(
-                Number(quality.average_score || 0).toFixed(2)
-            );
-
-        const highQuality =
-            Number(quality.high_quality || 0);
-
-        const mediumQuality =
-            Number(quality.medium_quality || 0);
-
-        const lowQuality =
-            Number(quality.low_quality || 0);
-
-        // -------------------------------------------------
+        // =====================================================
         // RESPONSE
-        // -------------------------------------------------
+        // =====================================================
 
         return res.status(200).json({
+
             success: true,
-            message: "Data quality dashboard fetched successfully",
+
+            message:
+                "Data quality dashboard fetched successfully",
 
             data: {
+
                 summary: {
-                    totalBooks,
 
-                    averageQualityScore: averageScore,
+                    totalBooks:
+                        Number(
+                            summaryRows[0]?.totalBooks || 0
+                        ),
 
-                    highQualityBooks: highQuality,
+                    averageQualityScore:
+                        Number(
+                            summaryRows[0]?.averageQualityScore || 0
+                        ),
 
-                    mediumQualityBooks: mediumQuality,
+                    highQualityBooks:
+                        Number(
+                            summaryRows[0]?.highQualityBooks || 0
+                        ),
 
-                    lowQualityBooks: lowQuality
+                    mediumQualityBooks:
+                        Number(
+                            summaryRows[0]?.mediumQualityBooks || 0
+                        ),
+
+                    lowQualityBooks:
+                        Number(
+                            summaryRows[0]?.lowQualityBooks || 0
+                        )
                 },
 
-                qualityDistribution: {
-                    high: highQuality,
-                    medium: mediumQuality,
-                    low: lowQuality
-                },
 
                 missingData: {
-                    isbn10: Number(
-                        missing.missing_isbn10 || 0
-                    ),
 
-                    isbn13: Number(
-                        missing.missing_isbn13 || 0
-                    ),
+                    author:
+                        Number(
+                            missingRows[0]?.missingAuthor || 0
+                        ),
 
-                    publisher: Number(
-                        missing.missing_publisher || 0
-                    ),
+                    publishYear:
+                        Number(
+                            missingRows[0]?.missingPublishYear || 0
+                        ),
 
-                    language: Number(
-                        missing.missing_language || 0
-                    ),
+                    subjects:
+                        Number(
+                            missingRows[0]?.missingSubjects || 0
+                        ),
 
-                    pageCount: Number(
-                        missing.missing_page_count || 0
-                    ),
+                    isbn:
+                        Number(
+                            missingRows[0]?.missingISBN || 0
+                        ),
 
-                    cover: Number(
-                        missing.missing_cover || 0
-                    ),
+                    publisher:
+                        Number(
+                            missingRows[0]?.missingPublisher || 0
+                        ),
 
-                    publishYear: Number(
-                        missing.missing_publish_year || 0
-                    )
+                    language:
+                        Number(
+                            missingRows[0]?.missingLanguage || 0
+                        ),
+
+                    pageCount:
+                        Number(
+                            missingRows[0]?.missingPageCount || 0
+                        ),
+
+                    cover:
+                        Number(
+                            missingRows[0]?.missingCover || 0
+                        )
+                },
+
+
+                duplicateISBN: {
+
+                    isbn10: duplicateISBN10,
+
+                    isbn13: duplicateISBN13,
+
+                    totalGroups:
+                        duplicateISBN10.length +
+                        duplicateISBN13.length
+                },
+
+
+                review: {
+
+                    totalBooks:
+                        Number(
+                            reviewRows[0]?.totalBooks || 0
+                        ),
+
+                    reviewedBooks:
+                        Number(
+                            reviewRows[0]?.reviewedBooks || 0
+                        ),
+
+                    pendingReviewBooks:
+                        Number(
+                            reviewRows[0]?.pendingReviewBooks || 0
+                        )
                 }
             }
         });
 
     } catch (error) {
+
         console.error(
             "GET DATA QUALITY DASHBOARD ERROR:",
             error
         );
 
         return res.status(500).json({
+
             success: false,
+
             message:
-                "Failed to fetch data quality dashboard"
+                "Failed to fetch data quality dashboard",
+
+            error:
+                process.env.NODE_ENV === "development"
+                    ? error.message
+                    : undefined
+        });
+    }
+};
+
+
+export const markBookAsReviewed = async (req, res) => {
+
+    try {
+
+        const bookId =
+            Number(req.params.id);
+
+        if (
+            !Number.isInteger(bookId) ||
+            bookId < 1
+        ) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Invalid book ID"
+            });
+        }
+
+
+        const [result] =
+            await pool.execute(
+                `
+                UPDATE books
+                SET reviewed = 1
+                WHERE id = ?
+                `,
+                [bookId]
+            );
+
+
+        if (result.affectedRows === 0) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message:
+                    "Book not found"
+            });
+        }
+
+
+        return res.status(200).json({
+
+            success: true,
+
+            message:
+                "Book marked as reviewed successfully",
+
+            data: {
+
+                bookId,
+
+                reviewed: true
+            }
+        });
+
+    } catch (error) {
+
+        console.error(
+            "MARK BOOK REVIEWED ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+
+            success: false,
+
+            message:
+                "Failed to mark book as reviewed"
         });
     }
 };

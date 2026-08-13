@@ -1,15 +1,17 @@
 import React from "react";
 import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
 } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Reports from "./pages/Reports";
 import Books from "./pages/Books";
 import CreateBook from "./pages/CreateBook";
+import EditBook from "./pages/EditBook";
 import Authors from "./pages/Authors";
 import Subjects from "./pages/Subjects";
 import DataQuality from "./pages/DataQuality";
@@ -22,160 +24,232 @@ import Sidebar from "./components/Sidebar";
 import "./App.css";
 
 
+// =====================================================
+// MAIN LAYOUT
+// =====================================================
+
 function MainLayout({ children }) {
-  return (
-    <div className="app-layout">
+    return (
+        <div className="app-layout">
 
-      <Sidebar />
+            <Sidebar />
 
-      <main className="app-content">
-        {children}
-      </main>
+            <main className="app-content">
+                {children}
+            </main>
 
-    </div>
-  );
+        </div>
+    );
 }
 
 
+// =====================================================
+// APP
+// =====================================================
+
 function App() {
-  return (
-    <BrowserRouter>
+    return (
+        <BrowserRouter>
 
-      <Routes>
+            <Routes>
 
-        {/* LOGIN */}
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+                {/* =================================================
+                    LOGIN
+                ================================================= */}
 
-
-        {/* PROTECTED ROUTES */}
-        <Route
-          element={
-            <ProtectedRoute
-              allowedRoles={["admin", "viewer"]}
-            />
-          }
-        >
-
-          {/* DASHBOARD */}
-          <Route
-            path="/dashboard"
-            element={
-              <MainLayout>
-                <Dashboard />
-              </MainLayout>
-            }
-          />
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
 
-          {/* BOOKS */}
-          <Route
-            path="/books"
-            element={
-              <MainLayout>
-                <Books />
-              </MainLayout>
-            }
-          />
+                {/* =================================================
+                    PROTECTED ROUTES
+                ================================================= */}
+
+                <Route
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["admin", "viewer"]}
+                        />
+                    }
+                >
+
+                    {/* =================================================
+                        DASHBOARD
+                    ================================================= */}
+
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <MainLayout>
+                                <Dashboard />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* CREATE BOOK */}
-          <Route
-            path="/books/create"
-            element={
-              <MainLayout>
-                <CreateBook />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        REPORTS
+                    ================================================= */}
+
+                    <Route
+                        path="/reports"
+                        element={
+                            <MainLayout>
+                                <Reports />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* AUTHORS */}
-          <Route
-            path="/authors"
-            element={
-              <MainLayout>
-                <Authors />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        BOOKS
+                    ================================================= */}
+
+                    <Route
+                        path="/books"
+                        element={
+                            <MainLayout>
+                                <Books />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* SUBJECTS */}
-          <Route
-            path="/subjects"
-            element={
-              <MainLayout>
-                <Subjects />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        CREATE BOOK
+                    ================================================= */}
+
+                    <Route
+                        path="/books/create"
+                        element={
+                            <MainLayout>
+                                <CreateBook />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* DATA QUALITY */}
-          <Route
-            path="/data-quality"
-            element={
-              <MainLayout>
-                <DataQuality />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        EDIT BOOK
+                    ================================================= */}
+
+                    <Route
+                        path="/books/:id/edit"
+                        element={
+                            <MainLayout>
+                                <EditBook />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* IMPORT JOBS */}
-          <Route
-            path="/import-jobs"
-            element={
-              <MainLayout>
-                <ImportJobs />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        AUTHORS
+                    ================================================= */}
+
+                    <Route
+                        path="/authors"
+                        element={
+                            <MainLayout>
+                                <Authors />
+                            </MainLayout>
+                        }
+                    />
 
 
-          {/* AUDIT LOGS */}
-          <Route
-            path="/audit-logs"
-            element={
-              <MainLayout>
-                <AuditLogs />
-              </MainLayout>
-            }
-          />
+                    {/* =================================================
+                        SUBJECTS
+                    ================================================= */}
 
-        </Route>
-
-
-        {/* DEFAULT */}
-        <Route
-          path="/"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
-            />
-          }
-        />
+                    <Route
+                        path="/subjects"
+                        element={
+                            <MainLayout>
+                                <Subjects />
+                            </MainLayout>
+                        }
+                    />
 
 
-        {/* UNKNOWN URL */}
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/dashboard"
-              replace
-            />
-          }
-        />
+                    {/* =================================================
+                        DATA QUALITY
+                    ================================================= */}
 
-      </Routes>
+                    <Route
+                        path="/data-quality"
+                        element={
+                            <MainLayout>
+                                <DataQuality />
+                            </MainLayout>
+                        }
+                    />
 
-    </BrowserRouter>
-  );
+
+                    {/* =================================================
+                        IMPORT JOBS
+                    ================================================= */}
+
+                    <Route
+                        path="/import-jobs"
+                        element={
+                            <MainLayout>
+                                <ImportJobs />
+                            </MainLayout>
+                        }
+                    />
+
+
+                    {/* =================================================
+                        AUDIT LOGS
+                    ================================================= */}
+
+                    <Route
+                        path="/audit-logs"
+                        element={
+                            <MainLayout>
+                                <AuditLogs />
+                            </MainLayout>
+                        }
+                    />
+
+                </Route>
+
+
+                {/* =================================================
+                    DEFAULT ROUTE
+                ================================================= */}
+
+                <Route
+                    path="/"
+                    element={
+                        <Navigate
+                            to="/dashboard"
+                            replace
+                        />
+                    }
+                />
+
+
+                {/* =================================================
+                    UNKNOWN URL
+                ================================================= */}
+
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/dashboard"
+                            replace
+                        />
+                    }
+                />
+
+            </Routes>
+
+        </BrowserRouter>
+    );
 }
 
 

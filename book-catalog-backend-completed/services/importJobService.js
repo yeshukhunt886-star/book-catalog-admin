@@ -10,7 +10,6 @@ export const createImportJob = async ({
     adminId = null,
     requestedCount
 }) => {
-
     const [result] = await pool.execute(
         `
         INSERT INTO import_jobs
@@ -39,7 +38,7 @@ export const createImportJob = async ({
 
 /*
 =====================================================
-UPDATE IMPORT JOB
+UPDATE IMPORT JOB PROGRESS
 =====================================================
 */
 
@@ -56,15 +55,16 @@ export const updateImportJob = async (
             imported_count = ?,
             updated_count = ?,
             skipped_count = ?,
-            failed_count = ?
+            failed_count = ?,
+            status = 'running'
         WHERE id = ?
         `,
         [
-            summary.processed || 0,
-            summary.inserted || 0,
-            summary.updated || 0,
-            summary.skipped || 0,
-            summary.failed || 0,
+            Number(summary.processed || 0),
+            Number(summary.inserted || 0),
+            Number(summary.updated || 0),
+            Number(summary.skipped || 0),
+            Number(summary.failed || 0),
             jobId
         ]
     );
@@ -82,6 +82,39 @@ export const completeImportJob = async (
     summary
 ) => {
 
+    const processed =
+        Number(summary.processed || 0);
+
+    const imported =
+        Number(summary.inserted || 0);
+
+    const updated =
+        Number(summary.updated || 0);
+
+    const skipped =
+        Number(summary.skipped || 0);
+
+    const failed =
+        Number(summary.failed || 0);
+
+
+    /*
+    -------------------------------------------------
+    DETERMINE FINAL STATUS
+    -------------------------------------------------
+    */
+
+    let status = "completed";
+
+    if (failed > 0 && processed > failed) {
+        status = "partially_completed";
+    }
+
+    if (failed > 0 && processed === failed) {
+        status = "failed";
+    }
+
+
     await pool.execute(
         `
         UPDATE import_jobs
@@ -91,16 +124,17 @@ export const completeImportJob = async (
             updated_count = ?,
             skipped_count = ?,
             failed_count = ?,
-            status = 'completed',
+            status = ?,
             completed_at = NOW()
         WHERE id = ?
         `,
         [
-            summary.processed || 0,
-            summary.inserted || 0,
-            summary.updated || 0,
-            summary.skipped || 0,
-            summary.failed || 0,
+            processed,
+            imported,
+            updated,
+            skipped,
+            failed,
+            status,
             jobId
         ]
     );
@@ -128,7 +162,8 @@ export const failImportJob = async (
         WHERE id = ?
         `,
         [
-            error?.message || "Import failed",
+            error?.message ||
+            "Import failed",
             jobId
         ]
     );
@@ -137,7 +172,7 @@ export const failImportJob = async (
 
 /*
 =====================================================
-GET IMPORT JOB
+GET SINGLE IMPORT JOB
 =====================================================
 */
 
@@ -147,12 +182,28 @@ export const getImportJob = async (
 
     const [rows] = await pool.execute(
         `
-        SELECT *
-        FROM import_jobs
-        WHERE id = ?
+        SELECT
+            ij.id,
+            ij.admin_id,
+            ij.requested_count,
+            ij.processed_count,
+            ij.imported_count,
+            ij.updated_count,
+            ij.skipped_count,
+            ij.failed_count,
+            ij.status,
+            ij.error_message,
+            ij.started_at,
+            ij.completed_at,
+            ij.created_at,
+            ij.updated_at
+        FROM import_jobs ij
+        WHERE ij.id = ?
         LIMIT 1
         `,
-        [jobId]
+        [
+            jobId
+        ]
     );
 
     return rows[0] || null;
@@ -170,11 +221,21 @@ export const getImportJobs = async () => {
     const [rows] = await pool.execute(
         `
         SELECT
-            ij.*,
-            a.email AS admin_email
+            ij.id,
+            ij.admin_id,
+            ij.requested_count,
+            ij.processed_count,
+            ij.imported_count,
+            ij.updated_count,
+            ij.skipped_count,
+            ij.failed_count,
+            ij.status,
+            ij.error_message,
+            ij.started_at,
+            ij.completed_at,
+            ij.created_at,
+            ij.updated_at
         FROM import_jobs ij
-        LEFT JOIN admins a
-            ON a.id = ij.admin_id
         ORDER BY ij.created_at DESC
         `
     );

@@ -1,541 +1,175 @@
-/* =========================================================
-   DATA QUALITY PAGE
-========================================================= */
-
 .data-quality-page {
-  width: 100%;
-  min-height: 100vh;
-  padding: 30px;
-  box-sizing: border-box;
-
-  background: #f5f7fb;
-  color: #172033;
+    padding: 24px;
+    background: #f5f7fb;
+    min-height: 100vh;
 }
 
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.data-quality-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin-bottom: 24px;
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
 }
 
-.data-quality-header h1 {
-  margin: 0;
-
-  font-size: 28px;
-  font-weight: 700;
-
-  color: #172033;
+.page-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
 }
 
-.data-quality-header p {
-  margin: 7px 0 0;
-
-  font-size: 14px;
-  color: #718096;
+.page-header p {
+    margin: 0;
+    color: #666;
 }
 
-
-/* =========================================================
-   REFRESH BUTTON
-========================================================= */
-
-.refresh-button {
-  height: 40px;
-
-  padding: 0 18px;
-
-  border: 1px solid #d8dee8;
-  border-radius: 7px;
-
-  background: #ffffff;
-
-  color: #374151;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  cursor: pointer;
+.refresh-btn,
+.retry-btn {
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
 }
 
-.refresh-button:hover {
-  background: #f8fafc;
+.dashboard-section {
+    background: white;
+    padding: 22px;
+    margin-bottom: 24px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-
-/* =========================================================
-   OVERALL QUALITY BOX
-========================================================= */
-
-.quality-overall-card {
-  width: 100%;
-  min-height: 150px;
-
-  margin-bottom: 22px;
-  padding: 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  box-sizing: border-box;
-
-  background: #ffffff;
-
-  border: 1px solid #e1e6ee;
-  border-radius: 12px;
-
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+.dashboard-section h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
 }
 
-.quality-overall-content h2 {
-  margin: 0 0 8px;
-
-  font-size: 18px;
-  font-weight: 700;
+.quality-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
 }
 
-.quality-overall-content p {
-  margin: 5px 0;
-
-  font-size: 13px;
-  color: #718096;
+.quality-card,
+.missing-card,
+.review-cards > div,
+.duplicate-summary > div {
+    padding: 18px;
+    border-radius: 8px;
+    background: #f7f8fa;
 }
 
-
-/* SCORE CIRCLE */
-
-.quality-score {
-  width: 105px;
-  height: 105px;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  border: 8px solid #dbeafe;
-
-  background: #eff6ff;
+.quality-card span,
+.missing-card span,
+.review-cards span,
+.duplicate-summary span {
+    display: block;
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
 }
 
-.quality-score strong {
-  font-size: 24px;
-  font-weight: 700;
-
-  color: #2563eb;
+.quality-card strong,
+.missing-card strong,
+.review-cards strong,
+.duplicate-summary strong {
+    font-size: 25px;
 }
 
-
-/* =========================================================
-   STATISTICS
-========================================================= */
-
-.data-quality-stats {
-  width: 100%;
-
-  display: grid;
-
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-
-  gap: 18px;
-
-  margin-bottom: 22px;
+.quality-card.high {
+    border-left: 4px solid #2e7d32;
 }
 
-.quality-stat-card {
-  min-height: 115px;
-
-  padding: 20px;
-
-  display: flex;
-  align-items: center;
-
-  gap: 15px;
-
-  box-sizing: border-box;
-
-  background: #ffffff;
-
-  border: 1px solid #e1e6ee;
-  border-radius: 12px;
-
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+.quality-card.medium {
+    border-left: 4px solid #f9a825;
 }
 
-
-/* STAT ICON */
-
-.quality-stat-icon {
-  width: 48px;
-  height: 48px;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 10px;
-
-  font-size: 21px;
+.quality-card.low {
+    border-left: 4px solid #d32f2f;
 }
 
-.quality-stat-icon.books {
-  background: #eff6ff;
+.missing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
 }
 
-.quality-stat-icon.valid {
-  background: #ecfdf5;
-  color: #16a34a;
+.missing-card {
+    border-left: 4px solid #d32f2f;
 }
 
-.quality-stat-icon.invalid {
-  background: #fff1f2;
-  color: #dc2626;
+.duplicate-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
 }
 
-.quality-stat-icon.duplicate {
-  background: #fff7ed;
-  color: #ea580c;
+.duplicate-table {
+    margin-top: 20px;
 }
 
-
-/* STAT TEXT */
-
-.quality-stat-label {
-  display: block;
-
-  margin-bottom: 6px;
-
-  font-size: 12px;
-  color: #718096;
+.duplicate-table table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.quality-stat-value {
-  display: block;
-
-  font-size: 25px;
-  font-weight: 700;
-
-  color: #172033;
+.duplicate-table th,
+.duplicate-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
 }
 
-
-/* =========================================================
-   DATA ISSUES BOX
-========================================================= */
-
-.data-issues-card {
-  width: 100%;
-
-  margin-bottom: 22px;
-
-  background: #ffffff;
-
-  border: 1px solid #e1e6ee;
-  border-radius: 12px;
-
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-
-  overflow: hidden;
+.review-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
 }
 
-.data-issues-header {
-  padding: 20px 22px;
-
-  border-bottom: 1px solid #edf0f4;
+.review-note {
+    margin-top: 18px;
+    color: #666;
 }
 
-.data-issues-header h2 {
-  margin: 0;
-
-  font-size: 18px;
-  font-weight: 700;
+.no-duplicates {
+    padding: 16px;
+    background: #f1f8f2;
+    border-radius: 6px;
 }
 
-.data-issues-header p {
-  margin: 6px 0 0;
-
-  font-size: 13px;
-  color: #718096;
+.loading {
+    text-align: center;
+    padding: 60px;
 }
 
-
-/* =========================================================
-   ISSUE GRID
-========================================================= */
-
-.issue-grid {
-  display: grid;
-
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-
-  gap: 15px;
-
-  padding: 22px;
-
-  box-sizing: border-box;
+.error-message {
+    background: #ffebee;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
 }
 
-.issue-card {
-  min-height: 105px;
+@media (max-width: 1000px) {
+    .quality-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-  padding: 17px;
-
-  display: flex;
-  align-items: center;
-
-  gap: 13px;
-
-  box-sizing: border-box;
-
-  background: #fafbfc;
-
-  border: 1px solid #e8ecf1;
-  border-radius: 10px;
+    .missing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
-
-
-/* ISSUE ICON */
-
-.issue-icon {
-  width: 44px;
-  height: 44px;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background: #fff1f2;
-
-  font-size: 19px;
-}
-
-
-/* ISSUE TEXT */
-
-.issue-card h3 {
-  margin: 0 0 6px;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  color: #718096;
-}
-
-.issue-card strong {
-  display: block;
-
-  font-size: 23px;
-  font-weight: 700;
-
-  color: #172033;
-}
-
-
-/* =========================================================
-   QUALITY ISSUES
-========================================================= */
-
-.quality-issues-card {
-  width: 100%;
-
-  background: #ffffff;
-
-  border: 1px solid #e1e6ee;
-  border-radius: 12px;
-
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-
-  overflow: hidden;
-}
-
-.quality-issues-header {
-  padding: 20px 22px;
-
-  border-bottom: 1px solid #edf0f4;
-}
-
-.quality-issues-header h2 {
-  margin: 0;
-
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.quality-issues-header p {
-  margin: 6px 0 0;
-
-  font-size: 13px;
-  color: #718096;
-}
-
-
-/* =========================================================
-   QUALITY MESSAGE
-========================================================= */
-
-.no-quality-issues {
-  min-height: 180px;
-
-  padding: 30px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-direction: column;
-
-  text-align: center;
-}
-
-.no-quality-icon {
-  width: 55px;
-  height: 55px;
-
-  margin-bottom: 12px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: #fff7ed;
-
-  color: #ea580c;
-
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.no-quality-issues h3 {
-  margin: 0 0 6px;
-
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.no-quality-issues p {
-  margin: 0;
-
-  max-width: 500px;
-
-  font-size: 13px;
-  color: #718096;
-}
-
-
-/* =========================================================
-   ERROR
-========================================================= */
-
-.data-quality-error {
-  width: 100%;
-
-  margin-bottom: 20px;
-  padding: 14px 16px;
-
-  box-sizing: border-box;
-
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-
-  background: #fff5f5;
-
-  color: #991b1b;
-
-  font-size: 13px;
-}
-
-
-/* =========================================================
-   LOADING
-========================================================= */
-
-.data-quality-loading {
-  min-height: 400px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 14px;
-  color: #718096;
-}
-
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1200px) {
-
-  .data-quality-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .issue-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-
-@media (max-width: 768px) {
-
-  .data-quality-page {
-    padding: 20px;
-  }
-
-  .data-quality-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .quality-overall-card {
-    align-items: flex-start;
-    flex-direction: column;
-
-    gap: 20px;
-  }
-
-  .quality-score {
-    width: 90px;
-    height: 90px;
-  }
-}
-
 
 @media (max-width: 600px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
 
-  .data-quality-page {
-    padding: 15px;
-  }
-
-  .data-quality-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .issue-grid {
-    grid-template-columns: 1fr;
-    padding: 15px;
-  }
-
-  .refresh-button {
-    width: 100%;
-  }
+    .quality-cards,
+    .missing-grid,
+    .duplicate-summary,
+    .review-cards {
+        grid-template-columns: 1fr;
+    }
 }

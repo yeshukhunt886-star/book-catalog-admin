@@ -2,11 +2,12 @@ import express from "express";
 
 import {
     getBooks,
-    getDataQualityDashboard,
     getBookById,
     createBook,
-    updateBookLocalFields,
-    deleteBook
+    updateBook,
+    deleteBook,
+    getDataQualityDashboard,
+    markBookAsReviewed
 } from "../controllers/bookController.js";
 
 import {
@@ -16,7 +17,6 @@ import {
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
 
 // =====================================================
 // GET ALL BOOKS
@@ -31,7 +31,6 @@ router.get(
     getBooks
 );
 
-
 // =====================================================
 // DATA QUALITY
 // GET /api/books/data-quality
@@ -45,6 +44,18 @@ router.get(
     getDataQualityDashboard
 );
 
+// =====================================================
+// MARK BOOK AS REVIEWED
+// PATCH /api/books/:id/review
+// ADMIN ONLY
+// =====================================================
+
+router.patch(
+    "/:id/review",
+    authenticateAdmin,
+    requireAdmin,
+    markBookAsReviewed
+);
 
 // =====================================================
 // GET BOOK DETAILS
@@ -59,7 +70,6 @@ router.get(
     getBookById
 );
 
-
 // =====================================================
 // CREATE BOOK
 // POST /api/books
@@ -73,7 +83,6 @@ router.post(
     createBook
 );
 
-
 // =====================================================
 // UPDATE BOOK
 // PATCH /api/books/:id
@@ -84,9 +93,8 @@ router.patch(
     "/:id",
     authenticateAdmin,
     requireAdmin,
-    updateBookLocalFields
+    updateBook
 );
-
 
 // =====================================================
 // DELETE BOOK
@@ -100,6 +108,5 @@ router.delete(
     requireAdmin,
     deleteBook
 );
-
 
 export default router;

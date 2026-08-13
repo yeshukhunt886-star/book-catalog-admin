@@ -1,224 +1,163 @@
-
 .edit-book-page {
   min-height: 100vh;
   padding: 30px;
-  background: #f5f7fb;
+  background: #f8fafc;
+  box-sizing: border-box;
 }
 
-.edit-book-card {
-  width: 100%;
-  max-width: 1000px;
+.edit-book-container {
+  max-width: 900px;
   margin: 0 auto;
-  padding: 30px;
-
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
 }
 
 .edit-book-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-
+  align-items: center;
   margin-bottom: 25px;
-  padding-bottom: 20px;
-
-  border-bottom: 1px solid #e5e7eb;
 }
 
 .edit-book-header h1 {
   margin: 0;
-  color: #111827;
-  font-size: 26px;
+  color: #1e293b;
+  font-size: 28px;
 }
 
 .edit-book-header p {
-  margin: 5px 0 0;
-  color: #6b7280;
-  font-size: 14px;
+  margin: 6px 0 0;
+  color: #64748b;
 }
 
 .back-button {
+  border: none;
+  background: #64748b;
+  color: white;
   padding: 10px 16px;
-
-  border: 1px solid #d1d5db;
   border-radius: 7px;
-
-  background: #ffffff;
-  color: #374151;
-
-  font-weight: 600;
   cursor: pointer;
 }
 
 .back-button:hover {
-  background: #f3f4f6;
+  background: #475569;
 }
 
 .edit-book-form {
-  width: 100%;
-}
-
-.form-row {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 25px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .form-group label {
-  display: block;
   margin-bottom: 7px;
-
-  color: #374151;
+  color: #334155;
   font-size: 14px;
   font-weight: 600;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 11px 13px;
-
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
-
-  background: #ffffff;
-  color: #111827;
-
-  font-size: 14px;
-  outline: none;
-
-  font-family: inherit;
 }
 
 .form-group input {
-  height: 44px;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
 }
 
-.form-group textarea {
-  resize: vertical;
-  min-height: 130px;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
+.form-group input:focus {
   border-color: #2563eb;
 }
 
-.form-actions {
+.edit-book-actions {
+  grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-
+  gap: 10px;
   margin-top: 10px;
   padding-top: 20px;
-
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e2e8f0;
 }
 
 .cancel-button,
-.save-button {
-  padding: 11px 22px;
-
+.update-button {
+  border: none;
+  padding: 10px 18px;
   border-radius: 7px;
-
-  font-size: 14px;
-  font-weight: 600;
-
   cursor: pointer;
+  font-size: 14px;
 }
 
 .cancel-button {
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  background: #e2e8f0;
+  color: #334155;
 }
 
 .cancel-button:hover {
-  background: #f3f4f6;
+  background: #cbd5e1;
 }
 
-.save-button {
-  border: none;
+.update-button {
   background: #2563eb;
-  color: #ffffff;
+  color: white;
 }
 
-.save-button:hover {
+.update-button:hover {
   background: #1d4ed8;
 }
 
-.cancel-button:disabled,
-.save-button:disabled {
+.update-button:disabled,
+.cancel-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.edit-error {
-  margin-bottom: 20px;
-  padding: 13px 16px;
-
-  border: 1px solid #fecaca;
-  border-radius: 7px;
-
-  background: #fee2e2;
-  color: #b91c1c;
-
-  font-size: 14px;
-}
-
-.edit-success {
-  margin-bottom: 20px;
-  padding: 13px 16px;
-
-  border: 1px solid #bbf7d0;
-  border-radius: 7px;
-
+.edit-book-success {
   background: #dcfce7;
   color: #166534;
-
-  font-size: 14px;
+  border: 1px solid #bbf7d0;
+  padding: 12px 15px;
+  border-radius: 7px;
+  margin-bottom: 20px;
 }
 
-.loading-message {
-  margin: 0;
+.edit-book-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 12px 15px;
+  border-radius: 7px;
+  margin-bottom: 20px;
+}
+
+.edit-book-loading {
+  padding: 50px;
   text-align: center;
-  color: #6b7280;
+  color: #64748b;
 }
 
 @media (max-width: 700px) {
   .edit-book-page {
-    padding: 18px;
-  }
-
-  .edit-book-card {
     padding: 20px;
   }
 
   .edit-book-header {
-    align-items: flex-start;
     flex-direction: column;
+    align-items: flex-start;
     gap: 15px;
   }
 
-  .form-row {
+  .edit-book-form {
     grid-template-columns: 1fr;
-    gap: 0;
   }
 
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
-  .cancel-button,
-  .save-button {
-    width: 100%;
+  .edit-book-actions {
+    grid-column: auto;
   }
 }
