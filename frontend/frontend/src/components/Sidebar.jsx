@@ -1,19 +1,37 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Sidebar.css";
 
 function Sidebar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const role = user?.role;
 
+  // =========================================
+  // LOGOUT
+  // =========================================
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      navigate("/login");
+    }
+  };
+
   return (
     <aside className="sidebar">
+
+      {/* Logo */}
       <div className="sidebar-logo">
         <h2>Book Catalog</h2>
         <span>Admin Portal</span>
       </div>
 
+      {/* Navigation */}
       <nav className="sidebar-nav">
 
         {/* Dashboard */}
@@ -96,10 +114,12 @@ function Sidebar() {
             <span>Audit Logs</span>
           </NavLink>
         )}
-
       </nav>
 
+      {/* Footer */}
       <div className="sidebar-footer">
+
+        {/* User Information */}
         <div className="user-info">
           <div className="user-avatar">
             {user?.email?.charAt(0).toUpperCase() || "A"}
@@ -110,10 +130,20 @@ function Sidebar() {
             <small>{role || "admin"}</small>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          type="button"
+          className="logout-button"
+          onClick={handleLogout}
+        >
+          <span>🚪</span>
+          <span>Logout</span>
+        </button>
+
       </div>
     </aside>
   );
 }
 
 export default Sidebar;
-
