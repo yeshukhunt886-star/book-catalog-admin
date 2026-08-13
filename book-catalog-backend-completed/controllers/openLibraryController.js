@@ -4,7 +4,6 @@ import {
     fetchBookData
 } from "../services/openLibraryService.js";
 
-
 /*
 |--------------------------------------------------------------------------
 | Search By Keyword
@@ -12,29 +11,36 @@ import {
 */
 
 export const searchByKeyword = async (req, res) => {
-
     try {
-
         const {
             keyword,
             page = 1,
             limit = 20
         } = req.query;
 
-        if (!keyword) {
-
+        // Check empty keyword
+        if (!keyword || !keyword.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Keyword is required"
             });
         }
 
-        const result =
-            await searchBooksByKeyword(
-                keyword,
-                Number(page),
-                Number(limit)
-            );
+        const cleanKeyword = keyword.trim();
+
+        // Check minimum keyword length
+        if (cleanKeyword.length < 2) {
+            return res.status(400).json({
+                success: false,
+                message: "Keyword must contain at least 2 characters"
+            });
+        }
+
+        const result = await searchBooksByKeyword(
+            cleanKeyword,
+            Number(page),
+            Number(limit)
+        );
 
         return res.status(200).json({
             success: true,
@@ -43,7 +49,6 @@ export const searchByKeyword = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error(
             "Search by keyword error:",
             error
@@ -55,7 +60,6 @@ export const searchByKeyword = async (req, res) => {
         });
     }
 };
-
 
 /*
 |--------------------------------------------------------------------------

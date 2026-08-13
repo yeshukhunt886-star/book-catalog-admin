@@ -2,12 +2,27 @@ import pool from "../config/db.js";
 import { importBooks, validateImportSize } from "../services/importService.js";
 
 // POST /api/imports
+// POST /api/imports
 export const startBookImport = async (req, res, next) => {
     try {
-        const { keyword = "", subject = "", count, limit } = req.body || {};
-        const cleanKeyword = typeof keyword === "string" ? keyword.trim() : "";
-        const cleanSubject = typeof subject === "string" ? subject.trim() : "";
+        const {
+            keyword = "",
+            subject = "",
+            count,
+            limit
+        } = req.body || {};
 
+        const cleanKeyword =
+            typeof keyword === "string"
+                ? keyword.trim()
+                : "";
+
+        const cleanSubject =
+            typeof subject === "string"
+                ? subject.trim()
+                : "";
+
+        // Empty search validation
         if (!cleanKeyword && !cleanSubject) {
             return res.status(400).json({
                 success: false,
@@ -15,19 +30,38 @@ export const startBookImport = async (req, res, next) => {
             });
         }
 
-        const importCount = validateImportSize(count ?? limit);
-        const adminId = req.user?.id || req.admin?.id || null;
+        // Minimum keyword length validation
+        if (cleanKeyword && cleanKeyword.length < 2) {
+            return res.status(400).json({
+                success: false,
+                message: "Keyword must contain at least 2 characters"
+            });
+        }
 
-        const result = await importBooks(importCount, adminId, {
-            keyword: cleanKeyword,
-            subject: cleanSubject
-        });
+        const importCount =
+            validateImportSize(count ?? limit);
+
+        const adminId =
+            req.user?.id ||
+            req.admin?.id ||
+            null;
+
+        const result = await importBooks(
+            importCount,
+            adminId,
+            {
+                keyword: cleanKeyword,
+                subject: cleanSubject
+            }
+        );
 
         return res.status(201).json({
             success: true,
-            message: result.failed > 0 || result.skipped > 0
-                ? "Import completed with some errors"
-                : "Import completed successfully",
+            message:
+                result.failed > 0 ||
+                result.skipped > 0
+                    ? "Import completed with some errors"
+                    : "Import completed successfully",
             data: {
                 jobId: result.jobId,
                 keyword: cleanKeyword || null,
@@ -42,7 +76,10 @@ export const startBookImport = async (req, res, next) => {
                 failed: result.failed
             }
         });
-    } catch (error) { next(error); }
+
+    } catch (error) {
+        next(error);
+    }
 };
 
 // GET /api/imports

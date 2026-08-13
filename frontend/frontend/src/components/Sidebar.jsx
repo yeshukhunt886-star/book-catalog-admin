@@ -38,7 +38,9 @@ function Sidebar() {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
+            isActive
+              ? "sidebar-link active"
+              : "sidebar-link"
           }
         >
           <span className="sidebar-icon">📊</span>
@@ -49,7 +51,9 @@ function Sidebar() {
         <NavLink
           to="/books"
           className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
+            isActive
+              ? "sidebar-link active"
+              : "sidebar-link"
           }
         >
           <span className="sidebar-icon">📚</span>
@@ -60,7 +64,9 @@ function Sidebar() {
         <NavLink
           to="/authors"
           className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
+            isActive
+              ? "sidebar-link active"
+              : "sidebar-link"
           }
         >
           <span className="sidebar-icon">✍️</span>
@@ -71,19 +77,38 @@ function Sidebar() {
         <NavLink
           to="/subjects"
           className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
+            isActive
+              ? "sidebar-link active"
+              : "sidebar-link"
           }
         >
           <span className="sidebar-icon">🏷️</span>
           <span>Subjects</span>
         </NavLink>
 
+        {/* Import Books */}
+        {role === "admin" && (
+          <NavLink
+            to="/import-books"
+            className={({ isActive }) =>
+              isActive
+                ? "sidebar-link active"
+                : "sidebar-link"
+            }
+          >
+            <span className="sidebar-icon">📥</span>
+            <span>Import Books</span>
+          </NavLink>
+        )}
+
         {/* Import Jobs */}
         {role === "admin" && (
           <NavLink
             to="/import-jobs"
             className={({ isActive }) =>
-              isActive ? "sidebar-link active" : "sidebar-link"
+              isActive
+                ? "sidebar-link active"
+                : "sidebar-link"
             }
           >
             <span className="sidebar-icon">⚙️</span>
@@ -95,7 +120,9 @@ function Sidebar() {
         <NavLink
           to="/data-quality"
           className={({ isActive }) =>
-            isActive ? "sidebar-link active" : "sidebar-link"
+            isActive
+              ? "sidebar-link active"
+              : "sidebar-link"
           }
         >
           <span className="sidebar-icon">✅</span>
@@ -107,13 +134,16 @@ function Sidebar() {
           <NavLink
             to="/audit-logs"
             className={({ isActive }) =>
-              isActive ? "sidebar-link active" : "sidebar-link"
+              isActive
+                ? "sidebar-link active"
+                : "sidebar-link"
             }
           >
             <span className="sidebar-icon">📝</span>
             <span>Audit Logs</span>
           </NavLink>
         )}
+
       </nav>
 
       {/* Footer */}
@@ -126,8 +156,13 @@ function Sidebar() {
           </div>
 
           <div className="user-details">
-            <strong>{user?.email || "Admin"}</strong>
-            <small>{role || "admin"}</small>
+            <strong>
+              {user?.email || "Admin"}
+            </strong>
+
+            <small>
+              {role || "admin"}
+            </small>
           </div>
         </div>
 
@@ -142,6 +177,7 @@ function Sidebar() {
         </button>
 
       </div>
+
     </aside>
   );
 }

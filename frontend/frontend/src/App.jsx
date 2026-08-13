@@ -1,256 +1,215 @@
-import React from "react";
-import {
-    BrowserRouter,
-    Routes,
-    Route,
-    Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/Layout";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Reports from "./pages/Reports";
 import Books from "./pages/Books";
 import CreateBook from "./pages/CreateBook";
 import EditBook from "./pages/EditBook";
 import Authors from "./pages/Authors";
+import AuthorDetails from "./pages/AuthorDetails";
+import EditAuthor from "./pages/EditAuthor";
 import Subjects from "./pages/Subjects";
-import DataQuality from "./pages/DataQuality";
-import AuditLogs from "./pages/AuditLogs";
+import SubjectDetails from "./pages/SubjectDetails";
+import EditSubject from "./pages/EditSubject";
+import ImportBooks from "./pages/ImportBooks";
 import ImportJobs from "./pages/ImportJobs";
-
-import ProtectedRoute from "./components/ProtectedRoute";
-import Sidebar from "./components/Sidebar";
-
-import "./App.css";
-
-
-// =====================================================
-// MAIN LAYOUT
-// =====================================================
-
-function MainLayout({ children }) {
-    return (
-        <div className="app-layout">
-
-            <Sidebar />
-
-            <main className="app-content">
-                {children}
-            </main>
-
-        </div>
-    );
-}
-
-
-// =====================================================
-// APP
-// =====================================================
+import ImportJobDetails from "./pages/ImportJobDetails";
+import ImportHistory from "./pages/ImportHistory";
+import DataQuality from "./pages/DataQuality";
+import Reports from "./pages/Reports";
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
-    return (
-        <BrowserRouter>
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
 
-            <Routes>
+          <Route path="/login" element={<Login />} />
 
-                {/* =================================================
-                    LOGIN
-                ================================================= */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+          <Route
+            path="/books"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Books />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/books/create"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <CreateBook />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                {/* =================================================
-                    PROTECTED ROUTES
-                ================================================= */}
+          <Route
+            path="/books/edit/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <EditBook />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                <Route
-                    element={
-                        <ProtectedRoute
-                            allowedRoles={["admin", "viewer"]}
-                        />
-                    }
-                >
+          <Route
+            path="/authors"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Authors />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    {/* =================================================
-                        DASHBOARD
-                    ================================================= */}
+          <Route
+            path="/authors/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <AuthorDetails />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <MainLayout>
-                                <Dashboard />
-                            </MainLayout>
-                        }
-                    />
+          <Route
+            path="/subjects"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Subjects />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/subjects/:id"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SubjectDetails />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    {/* =================================================
-                        REPORTS
-                    ================================================= */}
+          <Route
+            path="/import-books"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <ImportBooks />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/reports"
-                        element={
-                            <MainLayout>
-                                <Reports />
-                            </MainLayout>
-                        }
-                    />
+          <Route
+            path="/import-jobs"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <ImportJobs />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/import-jobs/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <ImportJobDetails />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    {/* =================================================
-                        BOOKS
-                    ================================================= */}
+          <Route
+            path="/import-history"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <ImportHistory />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/books"
-                        element={
-                            <MainLayout>
-                                <Books />
-                            </MainLayout>
-                        }
-                    />
+          <Route
+            path="/data-quality"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <DataQuality />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Reports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    {/* =================================================
-                        CREATE BOOK
-                    ================================================= */}
+          <Route
+            path="/audit-logs"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Layout>
+                  <AuditLogs />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/books/create"
-                        element={
-                            <MainLayout>
-                                <CreateBook />
-                            </MainLayout>
-                        }
-                    />
+          <Route
+            path="/"
+            element={<Navigate to="/dashboard" replace />}
+          />
 
+          <Route
+            path="*"
+            element={<Navigate to="/dashboard" replace />}
+          />
 
-                    {/* =================================================
-                        EDIT BOOK
-                    ================================================= */}
-
-                    <Route
-                        path="/books/:id/edit"
-                        element={
-                            <MainLayout>
-                                <EditBook />
-                            </MainLayout>
-                        }
-                    />
-
-
-                    {/* =================================================
-                        AUTHORS
-                    ================================================= */}
-
-                    <Route
-                        path="/authors"
-                        element={
-                            <MainLayout>
-                                <Authors />
-                            </MainLayout>
-                        }
-                    />
-
-
-                    {/* =================================================
-                        SUBJECTS
-                    ================================================= */}
-
-                    <Route
-                        path="/subjects"
-                        element={
-                            <MainLayout>
-                                <Subjects />
-                            </MainLayout>
-                        }
-                    />
-
-
-                    {/* =================================================
-                        DATA QUALITY
-                    ================================================= */}
-
-                    <Route
-                        path="/data-quality"
-                        element={
-                            <MainLayout>
-                                <DataQuality />
-                            </MainLayout>
-                        }
-                    />
-
-
-                    {/* =================================================
-                        IMPORT JOBS
-                    ================================================= */}
-
-                    <Route
-                        path="/import-jobs"
-                        element={
-                            <MainLayout>
-                                <ImportJobs />
-                            </MainLayout>
-                        }
-                    />
-
-
-                    {/* =================================================
-                        AUDIT LOGS
-                    ================================================= */}
-
-                    <Route
-                        path="/audit-logs"
-                        element={
-                            <MainLayout>
-                                <AuditLogs />
-                            </MainLayout>
-                        }
-                    />
-
-                </Route>
-
-
-                {/* =================================================
-                    DEFAULT ROUTE
-                ================================================= */}
-
-                <Route
-                    path="/"
-                    element={
-                        <Navigate
-                            to="/dashboard"
-                            replace
-                        />
-                    }
-                />
-
-
-                {/* =================================================
-                    UNKNOWN URL
-                ================================================= */}
-
-                <Route
-                    path="*"
-                    element={
-                        <Navigate
-                            to="/dashboard"
-                            replace
-                        />
-                    }
-                />
-
-            </Routes>
-
-        </BrowserRouter>
-    );
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
-
 
 export default App;
