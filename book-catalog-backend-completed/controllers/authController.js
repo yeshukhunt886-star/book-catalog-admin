@@ -228,10 +228,17 @@ export const getCurrentAdmin = async (req, res, next) => {
 // POST /api/auth/logout
 // =====================================================
 
+// =====================================================
+// ADMIN LOGOUT
+// POST /api/auth/logout
+// Logout + Deactivate Account
+// =====================================================
+
 export const logoutAdmin = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
+        // Check authorization header
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
@@ -248,28 +255,45 @@ export const logoutAdmin = async (req, res, next) => {
             });
         }
 
-        // Decode token to get expiration time
+        // Get logged-in admin from JWT
+        const adminId = req.user?.id;
         const decoded = req.user;
 
-        if (!decoded || !decoded.exp) {
+        if (!adminId || !decoded?.exp) {
             return res.status(401).json({
                 success: false,
                 message: "Invalid access token"
             });
         }
 
-        // JWT exp is in seconds, Date.now() is milliseconds
+        // =====================================================
+        // BLACKLIST JWT
+        // =====================================================
+
         const expiresAt = decoded.exp * 1000;
 
-        // Add token to blacklist
         blacklistToken(token, expiresAt);
+
+        // =====================================================
+        // DEACTIVATE ADMIN ACCOUNT
+        // =====================================================
+
+        await pool.execute(
+            `
+            UPDATE admins
+            SET status = 'inactive'
+            WHERE id = ?
+            `,
+            [adminId]
+        );
 
         return res.status(200).json({
             success: true,
-            message: "Logout successful"
+            message: "Logout successful. Account has been deactivated."
         });
 
     } catch (error) {
+        console.error("LOGOUT ERROR:", error);
         next(error);
     }
 };

@@ -117,40 +117,40 @@ export function AuthProvider({ children }) {
   // =========================================
 
   const logout = async () => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    try {
-      // Call backend logout API
-      if (token) {
-        await axios.post(
-          "http://localhost:5000/api/auth/logout",
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
-
-      console.log("LOGOUT SUCCESS");
-
-    } catch (error) {
-      console.error(
-        "LOGOUT API ERROR:",
-        error.response?.data || error.message
+  try {
+    if (token) {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-    } finally {
-      // Always clear frontend authentication data
-      localStorage.removeItem("token");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-
-      setUser(null);
+      console.log(
+        "LOGOUT RESPONSE:",
+        response.data
+      );
     }
-  };
+  } catch (error) {
+    console.error(
+      "LOGOUT ERROR:",
+      error.response?.data || error.message
+    );
+  } finally {
+    // Always clear frontend authentication
+    localStorage.removeItem("token");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+
+    setUser(null);
+  }
+};
 
   // =========================================
   // CONTEXT VALUE
