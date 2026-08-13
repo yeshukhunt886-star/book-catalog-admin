@@ -21,20 +21,14 @@ export function AuthProvider({ children }) {
   // =========================================
 
   useEffect(() => {
-    const storedUser =
-      localStorage.getItem("user");
-
-    const token =
-      localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
 
     if (storedUser && token) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error(
-          "Invalid stored user:",
-          error
-        );
+        console.error("Invalid stored user:", error);
 
         localStorage.removeItem("user");
         localStorage.removeItem("token");
@@ -58,10 +52,7 @@ export function AuthProvider({ children }) {
         }
       );
 
-      console.log(
-        "LOGIN RESPONSE:",
-        response.data
-      );
+      console.log("LOGIN RESPONSE:", response.data);
 
       const responseData =
         response.data?.data ||
@@ -86,10 +77,7 @@ export function AuthProvider({ children }) {
       }
 
       // Save token
-      localStorage.setItem(
-        "token",
-        token
-      );
+      localStorage.setItem("token", token);
 
       // Save user
       if (loggedInUser) {
@@ -128,13 +116,40 @@ export function AuthProvider({ children }) {
   // LOGOUT
   // =========================================
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
+  const logout = async () => {
+    const token = localStorage.getItem("token");
 
-    setUser(null);
+    try {
+      // Call backend logout API
+      if (token) {
+        await axios.post(
+          "http://localhost:5000/api/auth/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      console.log("LOGOUT SUCCESS");
+
+    } catch (error) {
+      console.error(
+        "LOGOUT API ERROR:",
+        error.response?.data || error.message
+      );
+
+    } finally {
+      // Always clear frontend authentication data
+      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+
+      setUser(null);
+    }
   };
 
   // =========================================
