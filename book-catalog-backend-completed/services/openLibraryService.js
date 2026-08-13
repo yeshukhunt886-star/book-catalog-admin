@@ -7,7 +7,7 @@ const OPEN_LIBRARY_URL =
 // CONFIGURATION
 // =====================================================
 
-const REQUEST_TIMEOUT = 60000; // 60 seconds
+const REQUEST_TIMEOUT = 5000; // 60 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
 

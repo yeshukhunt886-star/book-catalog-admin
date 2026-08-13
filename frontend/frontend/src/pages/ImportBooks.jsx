@@ -13,43 +13,46 @@ function ImportBooks() {
   const [result, setResult] = useState(null);
 
   const handleImport = async () => {
+    const cleanKeyword = keyword.trim();
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
+    if (!cleanKeyword) {
+      setError("Keyword is required");
+      setMessage("");
+      setResult(null);
+      return;
+    }
+
+    if (cleanKeyword.length < 2) {
+      setError(
+        "Keyword must contain at least 2 characters"
+      );
+      setMessage("");
+      setResult(null);
+      return;
+    }
+
     try {
       setLoading(true);
       setMessage("");
       setError("");
       setResult(null);
 
-      const cleanKeyword = keyword.trim();
-
-      // =========================================
-      // FRONTEND VALIDATION
-      // =========================================
-
-      if (!cleanKeyword) {
-        setError("Keyword is required");
-        return;
-      }
-
-      if (cleanKeyword.length < 2) {
-        setError(
-          "Keyword must contain at least 2 characters"
-        );
-        return;
-      }
-
       console.log("IMPORT REQUEST:", {
         keyword: cleanKeyword,
         count,
       });
 
-      // =========================================
-      // IMPORT API
-      // =========================================
-
-      const response = await api.post("/import/books", {
-        keyword: cleanKeyword,
-        count,
-      });
+      const response = await api.post(
+        "/import/books",
+        {
+          keyword: cleanKeyword,
+          count,
+        }
+      );
 
       console.log(
         "IMPORT RESPONSE:",
@@ -63,20 +66,50 @@ function ImportBooks() {
         );
       }
 
-      setMessage(
-        response.data.message ||
-        "Import started successfully."
-      );
+      const importResult =
+        response.data.data || null;
 
-      setResult(
-        response.data.data || null
-      );
+      setResult(importResult);
+
+      // =========================================
+      // NO RESULTS
+      // =========================================
+
+      if (
+        Number(importResult?.fetched || 0) === 0
+      ) {
+        setMessage(
+          "No books found for this keyword."
+        );
+      } else {
+        setMessage(
+          response.data.message ||
+          "Import completed successfully."
+        );
+      }
 
     } catch (err) {
       console.error(
         "IMPORT ERROR:",
         err
       );
+
+      // =========================================
+      // RATE LIMIT
+      // =========================================
+
+      if (err.response?.status === 429) {
+        const retryAfter =
+          err.response?.data?.retryAfter;
+
+        setError(
+          retryAfter
+            ? `Too many import requests. Please try again in ${retryAfter} seconds.`
+            : "Too many import requests. Please try again later."
+        );
+
+        return;
+      }
 
       setError(
         err.response?.data?.message ||
@@ -141,33 +174,25 @@ function ImportBooks() {
           <h2>Select Import Size</h2>
 
           <div className="import-options">
-
-            {[100, 500, 1000].map(
-              (value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={
-                    count === value
-                      ? "import-option selected"
-                      : "import-option"
-                  }
-                  onClick={() =>
-                    setCount(value)
-                  }
-                  disabled={loading}
-                >
-                  {value} Books
-                </button>
-              )
-            )}
-
+            {[100, 500, 1000].map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={
+                  count === value
+                    ? "import-option selected"
+                    : "import-option"
+                }
+                onClick={() => setCount(value)}
+                disabled={loading}
+              >
+                {value} Books
+              </button>
+            ))}
           </div>
 
           <div className="selected-count">
-            Selected:{" "}
-            <strong>{count}</strong>{" "}
-            books
+            Selected: <strong>{count}</strong> books
           </div>
 
           {/* =========================================
@@ -186,7 +211,7 @@ function ImportBooks() {
           </button>
 
           {/* =========================================
-              SUCCESS MESSAGE
+              SUCCESS / NO RESULT MESSAGE
               ========================================= */}
 
           {message && (
@@ -220,16 +245,14 @@ function ImportBooks() {
                   <span>Keyword</span>
                   <strong>
                     {result.keyword ||
-                      keyword}
+                      cleanKeyword}
                   </strong>
                 </div>
 
                 <div>
                   <span>Requested</span>
                   <strong>
-                    {result.requestedCount ??
-                      result.requested ??
-                      count}
+                    {result.requested ?? count}
                   </strong>
                 </div>
 
@@ -271,9 +294,7 @@ function ImportBooks() {
                 <div>
                   <span>Skipped</span>
                   <strong>
-                    {result.skipped ??
-                      result.skippedCount ??
-                      0}
+                    {result.skipped ?? 0}
                   </strong>
                 </div>
 
@@ -287,8 +308,7 @@ function ImportBooks() {
                 <div>
                   <span>Status</span>
                   <strong>
-                    {result.status ||
-                      "Completed"}
+                    {result.status || "Completed"}
                   </strong>
                 </div>
 

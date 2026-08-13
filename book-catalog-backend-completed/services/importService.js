@@ -1110,6 +1110,13 @@ export const importBooks = async (
             console.log(
                 `Received ${docs.length} books`
             );
+            if (docs.length === 0) {
+                    console.log(
+                        "Open Library returned no more records. Stopping pagination."
+                    );
+
+                    break;
+                }
 
 
             books.push(
@@ -1127,6 +1134,13 @@ export const importBooks = async (
             ) {
                 break;
             }
+            if (docs.length < limit) {
+                    console.log(
+                        `Short page received: ${docs.length} of ${limit}. Stopping pagination.`
+                    );
+
+                    break;
+                }
         }
 
 
