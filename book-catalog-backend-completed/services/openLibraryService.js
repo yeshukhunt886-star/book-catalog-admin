@@ -7,9 +7,9 @@ const OPEN_LIBRARY_URL =
 // CONFIGURATION
 // =====================================================
 
-const REQUEST_TIMEOUT = 5000; // 60 seconds
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // 2 seconds
+const REQUEST_TIMEOUT = 10000; // 10 seconds
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; // 1 second
 
 // =====================================================
 // WAIT HELPER
@@ -111,9 +111,12 @@ const searchOpenLibrary = async ({
 }) => {
 
     if (!keyword && !subject) {
-        throw new Error(
+        const error = new Error(
             "Either keyword or subject is required"
         );
+
+        error.statusCode = 400;
+        throw error;
     }
 
     // =================================================
@@ -178,9 +181,7 @@ const searchOpenLibrary = async ({
                 OPEN_LIBRARY_URL,
                 {
                     params,
-
                     timeout: REQUEST_TIMEOUT,
-
                     headers: {
                         Accept: "application/json",
                         "User-Agent":
@@ -197,11 +198,17 @@ const searchOpenLibrary = async ({
                 !response ||
                 !response.data
             ) {
-                throw new Error(
+                const error = new Error(
                     "Invalid response from Open Library"
                 );
+
+                error.statusCode = 502;
+                throw error;
             }
 
+            // IMPORTANT:
+            // Do not slice the records here.
+            // The import service controls pagination.
             const docs =
                 Array.isArray(response.data.docs)
                     ? response.data.docs
@@ -278,15 +285,31 @@ const searchOpenLibrary = async ({
 
             if (error.response) {
 
+                const status =
+                    error.response.status;
+
                 console.error(
                     "Open Library API Error:",
-                    error.response.status,
+                    status,
                     error.response.data
                 );
 
+                // Rate limit from Open Library
+                if (status === 429) {
+
+                    const rateLimitError =
+                        new Error(
+                            "Open Library rate limit reached. Please try again later."
+                        );
+
+                    rateLimitError.statusCode = 429;
+
+                    throw rateLimitError;
+                }
+
                 // Retry temporary server errors
                 if (
-                    error.response.status >= 500 &&
+                    status >= 500 &&
                     attempt < MAX_RETRIES
                 ) {
 
@@ -294,14 +317,21 @@ const searchOpenLibrary = async ({
                         `Open Library server error. Retrying in ${RETRY_DELAY}ms...`
                     );
 
-                    await sleep(RETRY_DELAY);
+                    await sleep(
+                        RETRY_DELAY
+                    );
 
                     continue;
                 }
 
-                throw new Error(
-                    `Open Library API failed with status ${error.response.status}`
-                );
+                const apiError =
+                    new Error(
+                        `Open Library API failed with status ${status}`
+                    );
+
+                apiError.statusCode = 502;
+
+                throw apiError;
             }
 
             // =================================================
@@ -325,14 +355,21 @@ const searchOpenLibrary = async ({
                         `Retrying Open Library request in ${RETRY_DELAY}ms...`
                     );
 
-                    await sleep(RETRY_DELAY);
+                    await sleep(
+                        RETRY_DELAY
+                    );
 
                     continue;
                 }
 
-                throw new Error(
-                    "Open Library API request timed out after multiple attempts"
-                );
+                const timeoutError =
+                    new Error(
+                        "Open Library API request timed out. Please try again later."
+                    );
+
+                timeoutError.statusCode = 504;
+
+                throw timeoutError;
             }
 
             // =================================================
@@ -341,7 +378,6 @@ const searchOpenLibrary = async ({
 
             if (
                 error.code === "ENOTFOUND" ||
-                error.code === "ECONNRESET" ||
                 error.code === "ECONNREFUSED"
             ) {
 
@@ -350,22 +386,43 @@ const searchOpenLibrary = async ({
                     error.code
                 );
 
+                const networkError =
+                    new Error(
+                        "Unable to connect to Open Library. The third-party API may be unavailable."
+                    );
+
+                networkError.statusCode = 503;
+
+                throw networkError;
+            }
+
+            if (
+                error.code === "ECONNRESET"
+            ) {
+
+                console.error(
+                    "Open Library connection reset"
+                );
+
                 if (
                     attempt < MAX_RETRIES
                 ) {
 
-                    console.log(
-                        `Retrying Open Library request in ${RETRY_DELAY}ms...`
+                    await sleep(
+                        RETRY_DELAY
                     );
-
-                    await sleep(RETRY_DELAY);
 
                     continue;
                 }
 
-                throw new Error(
-                    `Unable to connect to Open Library: ${error.message}`
-                );
+                const networkError =
+                    new Error(
+                        "Connection to Open Library was reset. Please try again later."
+                    );
+
+                networkError.statusCode = 503;
+
+                throw networkError;
             }
 
             // =================================================
@@ -377,9 +434,14 @@ const searchOpenLibrary = async ({
                 error
             );
 
-            throw new Error(
-                `Unable to connect to Open Library: ${error.message}`
-            );
+            const unknownError =
+                new Error(
+                    `Unable to connect to Open Library: ${error.message}`
+                );
+
+            unknownError.statusCode = 503;
+
+            throw unknownError;
         }
     }
 
@@ -387,14 +449,20 @@ const searchOpenLibrary = async ({
     // FINAL FALLBACK
     // =================================================
 
-    throw new Error(
-        lastError?.message ||
-        "Open Library request failed"
-    );
+    const finalError =
+        new Error(
+            lastError?.message ||
+            "Open Library request failed"
+        );
+
+    finalError.statusCode =
+        lastError?.statusCode || 503;
+
+    throw finalError;
 };
 
 // =====================================================
-// 7.1 SEARCH BY KEYWORD
+// SEARCH BY KEYWORD
 // =====================================================
 
 export const searchBooksByKeyword = async (
@@ -407,20 +475,44 @@ export const searchBooksByKeyword = async (
         !keyword ||
         !keyword.trim()
     ) {
-        throw new Error(
-            "Keyword is required"
-        );
+
+        const error =
+            new Error(
+                "Keyword is required"
+            );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    const cleanKeyword =
+        keyword.trim();
+
+    // Minimum 2 characters
+    if (
+        cleanKeyword.length < 2
+    ) {
+
+        const error =
+            new Error(
+                "Keyword must contain at least 2 characters"
+            );
+
+        error.statusCode = 400;
+
+        throw error;
     }
 
     return await searchOpenLibrary({
-        keyword: keyword.trim(),
+        keyword: cleanKeyword,
         page,
         limit
     });
 };
 
 // =====================================================
-// 7.2 SEARCH BY SUBJECT
+// SEARCH BY SUBJECT
 // =====================================================
 
 export const searchBooksBySubject = async (
@@ -433,9 +525,15 @@ export const searchBooksBySubject = async (
         !subject ||
         !subject.trim()
     ) {
-        throw new Error(
-            "Subject is required"
-        );
+
+        const error =
+            new Error(
+                "Subject is required"
+            );
+
+        error.statusCode = 400;
+
+        throw error;
     }
 
     return await searchOpenLibrary({
@@ -446,7 +544,7 @@ export const searchBooksBySubject = async (
 };
 
 // =====================================================
-// 7.3 FETCH BOOK DATA
+// FETCH BOOK DATA
 // =====================================================
 
 export const fetchBookData = async ({
@@ -466,9 +564,6 @@ export const fetchBookData = async ({
 
 // =====================================================
 // BACKWARD COMPATIBILITY
-// =====================================================
-// importService.js currently uses searchBooks().
-// Keep this alias so existing import code continues working.
 // =====================================================
 
 export const searchBooks = async ({
